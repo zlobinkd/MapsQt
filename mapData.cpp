@@ -47,7 +47,7 @@ static std::vector<TrafficSignalAssignment> readTrafficSignalAssignments(std::st
 }
 
 MapData::MapData() {
-    auto res = parseXML("C:\\Users\\Konstantin\\Downloads\\mapMoscow3");
+    auto res = parseXML("path\\to\\file");
 
 	if (!res.has_value())
 		return;
@@ -59,7 +59,7 @@ MapData::MapData() {
 	_relations = relations;
 	_bounds = bounds;
 
-    const auto assignments = readTrafficSignalAssignments("C:\\Users\\Konstantin\\Desktop\\streetSignalsMoscow_clustered.txt");
+    const auto assignments = readTrafficSignalAssignments("path\\to\\file");
 	for (const auto& assignment : assignments)
 		_nodes[assignment.id].addTag("cluster", std::to_string(assignment.cluster));
 }

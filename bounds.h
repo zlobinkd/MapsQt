@@ -9,6 +9,25 @@ class xmlWriter;
 class Node;
 class Way;
 
+struct ScaleAreaInformation {
+	// create-function, so that no implicit conversion makes troubles
+	static ScaleAreaInformation create(double d_scale, double d_x, double d_y);
+
+	size_t scale;
+	size_t x;
+	size_t y;
+
+	size_t numAreas() const;
+	size_t areaIndex() const;
+
+    // returns all areas of all scales, that intersect with the given node.
+    static std::vector<ScaleAreaInformation> areaInfos(const Node&);
+    // returns all areas of all scales, that intersect with the given way.
+    static std::vector<ScaleAreaInformation> areaInfos(const Way&);
+	// returns all areas of all scales, that intersect with the given rectangle.
+	static std::vector<ScaleAreaInformation> areaInfos(double x1, double y1, double x2, double y2);
+};
+
 // class for boundaries of an aerial image.
 // lon - longtitude, lat - latitude.
 class Bounds {
@@ -76,24 +95,14 @@ public:
 	// and so on
 	//
 
-	// relative scale and grid coordinates for another Bounds instance.
-	std::tuple<size_t, size_t, size_t> scaleAndCoords(const Bounds& other) const;
-
-	// for all scales, returns the pairs of grid coordinates that correspond to the given <coords>.
-	// TODO: <coords> is in fact two points (x1, y1, x2, y2) -> convert to a better type.
-	// The output has pairs of coordinates, because there could be several grid positions sitting
-	// between the left and right input points.
-	std::vector<std::array<std::array<size_t, 2>, 2>> scalesAndCoords(const std::array<double, 4>& coords) const;
-	// grid coordinates of all scales for a node point.
-	std::vector<std::array<std::array<size_t, 2>, 2>> scalesAndCoords(const Node&) const;
-	// grid coordinates for a way.
-    std::vector<std::array<std::array<size_t, 2>, 2>> scalesAndCoords(const Way&) const;
+	// scale and grid coordinates for this Bounds instance.
+	ScaleAreaInformation scaleAndCoords() const;
 
 private:
-	double _minLat;
-	double _maxLat;
-	double _minLon;
-	double _maxLon;
+	double _minLat = 0.;
+	double _maxLat = 0.;
+	double _minLon = 0.;
+	double _maxLon = 0.;
 
 	friend class xmlWriter;
 };

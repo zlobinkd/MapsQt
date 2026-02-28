@@ -13,6 +13,6 @@ std::vector<Connection> Map::shortestPath(id_t from, id_t to) {
 	return _graphRepresentation.shortestPath(from, to);
 }
 
-id_t Map::closestPoint(double lat, double lon, const Bounds& bounds) const {
+id_t Map::closestPoint(const double lat, const double lon, const Bounds& bounds) const {
 	return _guiRepresentation.closestPoint(lat, lon, bounds);
 }

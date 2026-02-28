@@ -37,7 +37,21 @@ const std::vector<id_t>& Way::refs() const {
 
 double Way::speedLimit() const {
 	if (!hasTag("maxspeed"))
+	{
+		if (tagValue("highway") == "residential")
+			return 30. / 3.6;
+		if (tagValue("highway") == "secondary_link")
+			return 60. / 3.6;
+		if (tagValue("highway") == "primary_link")
+			return 60. / 3.6;
+		if (tagValue("highway") == "secondary")
+			return 60. / 3.6;
+		if (tagValue("highway") == "primary")
+			return 70. / 3.6;
+		if (tagValue("highway") == "tertiary")
+			return 30. / 3.6;
 		return 5. / 3.6;
+	}
 
 	const std::string s = tagValue("maxspeed");
 	if (s == "walk")

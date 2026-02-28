@@ -163,54 +163,40 @@ GuiRepresentation::GuiRepresentation()
 	}
 
 	// assign nodes to the grid positions
-	for (const Node& node : MapData::instance().nodes()) {
-		const auto scalesAndCoords = MapData::instance().bounds().scalesAndCoords(node);
-		for (size_t scale = 0; scale < scalesAndCoords.size(); scale++) {
-			const auto& areaIndX = scalesAndCoords[scale][0];
-			const auto& areaIndY = scalesAndCoords[scale][1];
-			const size_t areasNum = 1 << scale;
-			for (size_t i = areaIndX[0]; i <= areaIndX[1]; i++)
-				for (size_t j = areaIndY[0]; j <= areaIndY[1]; j++)
-					_map[scale][i * areasNum + j].insertNode(node.id());
-		}
-	}
+	for (const Node& node : MapData::instance().nodes())
+        for (const auto& areaInfo : ScaleAreaInformation::areaInfos(node))
+			_map[areaInfo.scale][areaInfo.areaIndex()].insertNode(node.id());
 
 	// assign ways to the grid positions: secondary roads et al. only appear when we zoom in.
 	for (const Way& way : MapData::instance().ways()) {
-		const auto scalesAndCoords = MapData::instance().bounds().scalesAndCoords(way);
-		for (size_t scale = 0; scale < scalesAndCoords.size(); scale++) {
-            if (!way.hasTag("highway") || scale < 2 && !isMainRoad(way.tagValue("highway")))
+		if (!way.hasTag("highway"))
+			continue;
+
+        for (const auto& areaInfo : ScaleAreaInformation::areaInfos(way)) {
+			if (areaInfo.scale < 2 && !isMainRoad(way.tagValue("highway")))
 				continue;
 
-            //if (skipType(way.tagValue("highway")))
-            //    continue;
+			if (areaInfo.scale < 4 && !isRoad(way.tagValue("highway")))
+				continue;
 
-            if (scale < 4 && !isRoad(way.tagValue("highway")))
-                continue;
-
-			const auto& areaIndX = scalesAndCoords[scale][0];
-			const auto& areaIndY = scalesAndCoords[scale][1];
-			const size_t areasNum = 1 << scale;
-			for (size_t i = areaIndX[0]; i <= areaIndX[1]; i++)
-				for (size_t j = areaIndY[0]; j <= areaIndY[1]; j++)
-					_map[scale][i * areasNum + j].insertWay(way.id());
+			_map[areaInfo.scale][areaInfo.areaIndex()].insertWay(way.id());
 		}
 	}
 }
 
 const QHash<QPair<QColor, int>, QVector<QLineF>>& GuiRepresentation::waysToVisualize(const Bounds& bounds) const {
-	const auto [scale, x, y] = MapData::instance().bounds().scaleAndCoords(bounds);
-	return _map[scale][(1 << scale) * x + y].ways();
+	const auto info = bounds.scaleAndCoords();
+	return _map[info.scale][info.areaIndex()].ways();
 }
 
 // simple linear search
-id_t GuiRepresentation::closestPoint(double lat, double lon, const Bounds& bounds) const {
+id_t GuiRepresentation::closestPoint(const double lat, const double lon, const Bounds& bounds) const {
 	id_t res = 0;
 	auto temp = Node(0, lat, lon, {});
 
 	double minDist = std::numeric_limits<double>().max();
-	const auto [scale, x, y] = MapData::instance().bounds().scaleAndCoords(bounds);
-	for (const id_t i : _map[scale][(1 << scale) * x + y].nodes())
+	const auto info = bounds.scaleAndCoords();
+	for (const id_t i : _map[info.scale][info.areaIndex()].nodes())
 		if (Node::distance(temp, MapData::instance().nodes()[i]) < minDist) {
 			minDist = Node::distance(temp, MapData::instance().nodes()[i]);
 			res = i;
