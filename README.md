@@ -1,5 +1,7 @@
 # Installation
-Build with Qt Creator.
+1. Install Qt Creator.
+2. Press "Open Project", select the CMakeLists.txt file, choose the desired build configurations and click OK (or whatever that button says).
+3. Build and start the project.
 
 ## Prerequisites
 - Qt 6.10.2
