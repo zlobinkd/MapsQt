@@ -26,6 +26,7 @@ qt_add_executable(appMapsQt
     trafficDummy.cpp trafficDummy.h
     trafficObject.cpp trafficObject.h
     trafficSignal.cpp trafficSignal.h
+    trafficSignalSynchro.cpp trafficSignalSynchro.h
     trafficSimulation.cpp trafficSimulation.h
     way.cpp way.h
 )

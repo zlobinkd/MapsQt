@@ -6,6 +6,7 @@
 #include "way.h"
 #include "relation.h"
 #include "bounds.h"
+#include "trafficSignalSynchro.h"
 
 // Singleton for accessing Nodes and Ways
 class MapData {
@@ -30,6 +31,8 @@ public:
 	// whole map boundaries
 	const Bounds& bounds() const { return _bounds; }
 
+	std::optional<int> synchroLabel(id_t node, id_t neighbor) const;
+
 private:
 	MapData();
 
@@ -37,4 +40,6 @@ private:
 	Ways _ways;
 	std::vector<Relation> _relations;
 	Bounds _bounds;
+	std::vector<TrafficSignalSynchro> _trafficSignalSynchros;
+	std::vector<std::optional<size_t>> _synchroIndex;
 };

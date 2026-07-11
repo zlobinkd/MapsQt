@@ -4,10 +4,12 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 struct TrafficSignalAssignment {
-	id_t id;
+	id_t pointId;
 	int cluster;
+	std::map<id_t, int> neighborLabels;
 };
 
 static std::vector<std::string> split(const std::string& s, char delimiter) {
@@ -34,9 +36,12 @@ static std::vector<TrafficSignalAssignment> readTrafficSignalAssignments(std::st
 		std::stringstream ss(line);
 		TrafficSignalAssignment p;
 		
-		const auto splitLine = split(line, '\t');
-		p.id = std::stoi(splitLine[0]);
-		p.cluster = std::stoi(splitLine[3]);
+		const auto splitLine = split(line, ',');
+		p.pointId = std::stoi(splitLine[0]);
+		p.cluster = std::stoi(splitLine[1]);
+
+		for (size_t i = 1; i < splitLine.size() / 2; i++)
+			p.neighborLabels[std::stoi(splitLine[2 * i])] = std::stoi(splitLine[2 * i + 1]);
 
 		points.push_back(p);
 	}
@@ -47,7 +52,7 @@ static std::vector<TrafficSignalAssignment> readTrafficSignalAssignments(std::st
 }
 
 MapData::MapData() {
-    auto res = parseXML("path\\to\\file");
+    auto res = parseXML("C:\\MapsFiles\\mapMoscow3");
 
 	if (!res.has_value())
 		return;
@@ -58,8 +63,30 @@ MapData::MapData() {
 	_ways = ways;
 	_relations = relations;
 	_bounds = bounds;
+	_synchroIndex = std::vector<std::optional<size_t>>(_nodes.size());
+    const auto assignments = readTrafficSignalAssignments("C:\\MapsFiles\\streetSignalsMoscow_clustered.csv");
+	id_t currentTrafficSignalId = 0;
+	for (const auto& assignment : assignments) {
+		const auto it = std::find_if(_trafficSignalSynchros.begin(), _trafficSignalSynchros.end(),
+			[&assignment](const auto& synchro) {return synchro.clusterId() == assignment.cluster; });
+		if (assignment.cluster == -1 || it == _trafficSignalSynchros.end())
+		{
+			_synchroIndex[assignment.pointId] = _trafficSignalSynchros.size();
+			_trafficSignalSynchros.push_back(TrafficSignalSynchro{ currentTrafficSignalId, assignment.cluster });
+			currentTrafficSignalId++;
+			_trafficSignalSynchros.back().append(assignment.pointId, assignment.neighborLabels);
+		}
+		else {
+			_synchroIndex[assignment.pointId] = size_t(std::distance(_trafficSignalSynchros.begin(), it));
+			it->append(assignment.pointId, assignment.neighborLabels);
+		}
+	}
+}
 
-    const auto assignments = readTrafficSignalAssignments("path\\to\\file");
-	for (const auto& assignment : assignments)
-		_nodes[assignment.id].addTag("cluster", std::to_string(assignment.cluster));
+std::optional<int> MapData::synchroLabel(const id_t node, const id_t neighbor) const {
+	const auto& synchroIndex = _synchroIndex[node];
+	if (!synchroIndex.has_value())
+		return std::nullopt;
+
+	return _trafficSignalSynchros[*synchroIndex].synchroInfo(node, neighbor);
 }

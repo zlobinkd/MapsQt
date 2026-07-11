@@ -56,7 +56,7 @@ std::optional<std::pair<TrafficDummy, double>> TrafficSimulation::findNextObject
 	double distance = 0.;
 	for (size_t i = 0; i < route.size(); i++)
 	{
-		for (auto& connectionLoad : _dummies[route[i].from()]) {
+        for (const auto& connectionLoad : _dummies[route[i].from()]) {
 			const bool isSameWay = connectionLoad.segment().to() == route[i].to()
 				&& connectionLoad.segment().wayId() == object.currentSegment().wayId();
 

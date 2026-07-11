@@ -139,8 +139,24 @@ void GuiRepresentation::Area::insertWay(const id_t id) {
         const auto& coords1 = node1.localCoords(MapData::instance().bounds());
         const auto& coords2 = node2.localCoords(MapData::instance().bounds());
         const double aspectRatio = MapData::instance().bounds().aspectRatio();
-        _ways[penParams].append(QLineF{ImageSize * aspectRatio * coords1[1], ImageSize * coords1[0],
-                                       ImageSize * aspectRatio * coords2[1], ImageSize * coords2[0]});
+        const auto segment = QLineF{ImageSize * aspectRatio * coords1[1], ImageSize * coords1[0],
+                                    ImageSize * aspectRatio * coords2[1], ImageSize * coords2[0]};
+
+        // --- only for debug, remove if necessary ---
+        if (const auto label = MapData::instance().synchroLabel(nodeId2, nodeId1))
+        {
+            if (label == 1)
+                _ways[QPair<QColor, int>(Qt::red, 1)].append(segment);
+            else
+                _ways[QPair<QColor, int>(Qt::green, 1)].append(segment);
+        } else if (const auto label = MapData::instance().synchroLabel(nodeId1, nodeId2))
+        {
+            if (label == 1)
+                _ways[QPair<QColor, int>(Qt::red, 1)].append(segment);
+            else
+                _ways[QPair<QColor, int>(Qt::green, 1)].append(segment);
+        } else
+            _ways[penParams].append(segment);
     }
 }
 

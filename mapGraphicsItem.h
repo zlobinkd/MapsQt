@@ -51,6 +51,4 @@ private:
     std::optional<id_t> _startNodeId;
     std::optional<id_t> _endNodeId;
     QVector<QLineF> _route;
-
-    QHash<QPair<QColor, int>, QVector<QPointF>> _trafficSignalLocations;
 };
