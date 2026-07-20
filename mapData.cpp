@@ -1,5 +1,6 @@
 #include "mapData.h"
 #include "myXmlParser.h"
+#include "iniReader.h"
 
 #include <iostream>
 #include <fstream>
@@ -52,7 +53,10 @@ static std::vector<TrafficSignalAssignment> readTrafficSignalAssignments(std::st
 }
 
 MapData::MapData() {
-    auto res = parseXML("C:\\MapsFiles\\mapMoscow3");
+    IniReader iniReader;
+    iniReader.read();
+
+    auto res = parseXML(iniReader.mapFilePath());
 
 	if (!res.has_value())
 		return;
@@ -64,11 +68,17 @@ MapData::MapData() {
 	_relations = relations;
 	_bounds = bounds;
 	_synchroIndex = std::vector<std::optional<size_t>>(_nodes.size());
-    const auto assignments = readTrafficSignalAssignments("C:\\MapsFiles\\streetSignalsMoscow_clustered.csv");
+    const auto assignments = readTrafficSignalAssignments(iniReader.trafficSignalAssignmentsFilePath());
 	id_t currentTrafficSignalId = 0;
 	for (const auto& assignment : assignments) {
+        if (assignment.pointId >= _synchroIndex.size())
+        {
+            std::cerr << "Critical map file and traffic signals file mismatch!" << std::endl;
+            return;
+        }
+
 		const auto it = std::find_if(_trafficSignalSynchros.begin(), _trafficSignalSynchros.end(),
-			[&assignment](const auto& synchro) {return synchro.clusterId() == assignment.cluster; });
+            [&assignment](const auto& synchro) { return synchro.clusterId() == assignment.cluster; });
 		if (assignment.cluster == -1 || it == _trafficSignalSynchros.end())
 		{
 			_synchroIndex[assignment.pointId] = _trafficSignalSynchros.size();

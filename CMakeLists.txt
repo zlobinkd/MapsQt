@@ -15,6 +15,7 @@ qt_add_executable(appMapsQt
     core.h
     graphRepresentation.cpp graphRepresentation.h
     guiRepresentation.cpp guiRepresentation.h
+    iniReader.cpp iniReader.h
     map.cpp map.h
     mapData.cpp mapData.h
     mapFiltering.cpp mapFiltering.h
