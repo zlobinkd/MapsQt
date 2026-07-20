@@ -15,6 +15,7 @@ qt_add_executable(appMapsQt
     core.h
     graphRepresentation.cpp graphRepresentation.h
     guiRepresentation.cpp guiRepresentation.h
+    highwayClassification.cpp highwayClassification.h
     iniReader.cpp iniReader.h
     map.cpp map.h
     mapData.cpp mapData.h
@@ -22,6 +23,7 @@ qt_add_executable(appMapsQt
     myXmlParser.cpp myXmlParser.h
     myXmlWriter.cpp myXmlWriter.h
     node.cpp node.h
+    random.cpp random.h
     relation.cpp relation.h
     trafficCar.cpp trafficCar.h
     trafficDummy.cpp trafficDummy.h

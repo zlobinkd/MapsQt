@@ -5,6 +5,8 @@
 #include "trafficObject.h"
 #include "trafficDummy.h"
 #include "connection.h"
+#include "graphRepresentation.h"
+#include "random.h"
 
 #include <vector>
 
@@ -29,6 +31,8 @@ private:
 // class for traffic simulation
 class TrafficSimulation {
 public:
+    TrafficSimulation();
+
 	// run simulation
 	void run();
 	// write result to a file
@@ -56,4 +60,7 @@ private:
 	// vector index == segment.from.id
 	std::vector<Connections> _dummies;
 	std::vector<TrafficObject> _objects;
+
+    GraphRepresentation _pathFinder;
+    Random _randomNodeGenerator;
 };

@@ -7,7 +7,7 @@
 // class for the backend map representation.
 class Map {
 public:
-	Map() = default;
+    Map();
 
 	// ways from the grid position according to current image boundaries
     const QHash<QPair<QColor, int>, QVector<QLineF>>& waysToVisualize(const Bounds&) const;

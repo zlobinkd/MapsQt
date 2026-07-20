@@ -6,13 +6,16 @@
 #include <iostream>
 #include <limits>
 
-GraphRepresentation::GraphRepresentation()
+GraphRepresentation::GraphRepresentation(std::function<bool(const Way&)> filter)
 {
 	const auto& nodes = MapData::instance().nodes();
 	_connections = std::vector<Connections>(nodes.size());
 	_connectionRef = std::vector<std::set<id_t>>(nodes.size());
 
 	for (const auto& way : MapData::instance().ways()) {
+        if (!filter(way))
+            continue;
+
 		for (size_t i = 1; i < way.refs().size(); i++) {
 			const id_t node1 = way.refs()[i - 1];
 			const id_t node2 = way.refs()[i];

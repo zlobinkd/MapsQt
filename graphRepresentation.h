@@ -5,11 +5,12 @@
 #include "node.h"
 #include "way.h"
 #include "connection.h"
+#include <functional>
 
 // map representation, optimized for the route search.
 class GraphRepresentation {
 public:
-	GraphRepresentation();
+    GraphRepresentation(std::function<bool(const Way&)> filter);
 
 	// Dijkstra's algorithm
 	std::vector<Connection> shortestPath(id_t from, id_t to);

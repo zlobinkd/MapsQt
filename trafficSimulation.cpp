@@ -3,8 +3,37 @@
 #include "trafficCar.h"
 #include "trafficSignal.h"
 #include "mapData.h"
+#include "highwayClassification.h"
 
 #include <algorithm>
+
+static bool isHighway(const Way& way) {
+    if (!way.hasTag("highway"))
+        return false;
+
+    return isRoad(way.tagValue("highway"));
+}
+
+static std::vector<id_t> crossroadsNodes() {
+    std::vector<id_t> res;
+    std::vector<size_t> nodeConnectionNum(MapData::instance().nodes().size(), 0);
+    for (const auto& way : MapData::instance().ways())
+        if (isHighway(way))
+        {
+            const auto& nodes = way.refs();
+            for (size_t i = 0; i < nodes.size(); i++)
+                if (i == 0 || i + 1 == nodes.size())
+                    nodeConnectionNum[nodes[i]] += 1;
+                else
+                    nodeConnectionNum[nodes[i]] += 2;
+        }
+
+    for (id_t i = 0; i < nodeConnectionNum.size(); i++)
+        if (nodeConnectionNum[i] != 2 && nodeConnectionNum[i] != 0)
+            res.push_back(i);
+
+    return res;
+}
 
 ConnectionLoad::ConnectionLoad(const Connection& connection) : _segment(connection) {}
 
@@ -29,6 +58,8 @@ void ConnectionLoad::reset() {
 	_traffic.clear();
 }
 
+TrafficSimulation::TrafficSimulation() : _pathFinder(isHighway), _randomNodeGenerator(crossroadsNodes()) {}
+
 void TrafficSimulation::run() {
 	for (size_t i = 0; i < 10000000; i++)
 		updateStep();
@@ -40,11 +71,11 @@ void TrafficSimulation::dump() const
 {}
 
 void TrafficSimulation::updateStep() {
+    addNewObjects();
 	fillDummies();
 	updateObjects();
 	clearDummies();
-	deleteOffMapObjects();
-	addNewObjects();
+    deleteOffMapObjects();
 }
 
 std::optional<std::pair<TrafficDummy, double>> TrafficSimulation::findNextObject(const TrafficObject& object) const
@@ -124,7 +155,10 @@ void TrafficSimulation::clearDummies() {
 		for (auto& load : nodeOutputLoads)
 			load.reset();
 }
-void TrafficSimulation::addNewObjects() {}
+void TrafficSimulation::addNewObjects() {
+    // only add traffic signals on the first call
+    // fill cars list until the list is full - how much is a full list?
+}
 
 void TrafficSimulation::deleteOffMapObjects() {
 	std::vector<size_t> idsToDelete;

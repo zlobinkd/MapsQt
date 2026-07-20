@@ -5,6 +5,10 @@
 #include <algorithm>
 #include <iostream>
 
+Map::Map()
+    : _graphRepresentation([](const Way&){ return true; })
+{}
+
 const QHash<QPair<QColor, int>, QVector<QLineF>>& Map::waysToVisualize(const Bounds& bounds) const {
 	return _guiRepresentation.waysToVisualize(bounds);
 }
