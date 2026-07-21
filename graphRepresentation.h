@@ -12,9 +12,13 @@ class GraphRepresentation {
 public:
     GraphRepresentation(std::function<bool(const Way&)> filter);
 
-	// Dijkstra's algorithm
 	std::vector<Connection> shortestPath(id_t from, id_t to);
+    // does not find paths between nodes that are no crossroads
+    std::vector<Connection> shortestPathBetweenCrossroads(id_t from, id_t to) const;
 private:
+    // Dijkstra's algorithm
+    std::vector<Connection> shortestPathImpl(id_t from, id_t to) const;
+
 	struct Connections {
 		std::vector<Connection> input;
 		std::vector<Connection> output;

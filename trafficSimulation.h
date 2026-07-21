@@ -9,6 +9,7 @@
 #include "random.h"
 
 #include <vector>
+#include <memory>
 
 // class that represents which objects are located on a certain segment
 class ConnectionLoad {
@@ -43,14 +44,18 @@ private:
 	void updateStep();
 	// find the closest obstacle on the route of the given object
 	std::optional<std::pair<TrafficDummy, double>> findNextObject(const TrafficObject&) const;
+    // init dummy container
+    void initDummies();
 	// fill dummy container
 	void fillDummies();
 	// update traffic objects
 	void updateObjects();
 	
 	void clearDummies();
-	// add new traffic objects, if their number is too small
-	void addNewObjects();
+    // adds all traffic signals to the simulation
+    void addTrafficSignals();
+    // randomly spawns cars
+    void addCars();
 	// delete traffic objects that finished their routes
 	void deleteOffMapObjects();
 
@@ -59,7 +64,7 @@ private:
 
 	// vector index == segment.from.id
 	std::vector<Connections> _dummies;
-	std::vector<TrafficObject> _objects;
+    std::vector<std::unique_ptr<TrafficObject>> _objects;
 
     GraphRepresentation _pathFinder;
     Random _randomNodeGenerator;

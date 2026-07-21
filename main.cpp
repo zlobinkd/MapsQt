@@ -3,6 +3,8 @@
 #include <QApplication>
 #include "mainWindow.h"
 
+#include "trafficSimulation.h"
+
 /*int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
@@ -23,8 +25,7 @@
     return app.exec();
 }*/
 
-int main(int argc, char *argv[])
-{
+static int browseMap(int argc, char *argv[]) {
     QApplication app(argc, argv);
 
     MainWindow window;
@@ -33,4 +34,11 @@ int main(int argc, char *argv[])
     window.show();
 
     return app.exec();
+}
+
+int main(int argc, char *argv[])
+{
+    TrafficSimulation sim;
+
+    sim.run();
 }

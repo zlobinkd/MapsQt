@@ -61,17 +61,20 @@ void ConnectionLoad::reset() {
 TrafficSimulation::TrafficSimulation() : _pathFinder(isHighway), _randomNodeGenerator(crossroadsNodes()) {}
 
 void TrafficSimulation::run() {
+    addTrafficSignals();
+    initDummies();
 	for (size_t i = 0; i < 10000000; i++)
+    {
 		updateStep();
-
-	dump();
+        dump();
+    }
 }
 
 void TrafficSimulation::dump() const
 {}
 
 void TrafficSimulation::updateStep() {
-    addNewObjects();
+    addCars();
 	fillDummies();
 	updateObjects();
 	clearDummies();
@@ -119,18 +122,59 @@ std::optional<std::pair<TrafficDummy, double>> TrafficSimulation::findNextObject
 	return std::nullopt;
 }
 
+void TrafficSimulation::initDummies() {
+    const auto& nodes = MapData::instance().nodes();
+    _dummies = std::vector<Connections>(nodes.size());
+
+    for (const auto& way : MapData::instance().ways()) {
+        for (size_t i = 1; i < way.refs().size(); i++) {
+            const id_t node1 = way.refs()[i - 1];
+            const id_t node2 = way.refs()[i];
+            _dummies[node1].emplace_back(ConnectionLoad{ Connection{ way.id(), node1, node2 } });
+        }
+
+        //if both ways not allowed
+        if (way.tagValue("oneway") == "yes")
+            continue;
+
+        for (size_t i = 1; i < way.refs().size(); i++) {
+            const id_t node1 = way.refs()[i - 1];
+            const id_t node2 = way.refs()[i];
+            _dummies[node1].emplace_back(ConnectionLoad{ Connection{ way.id(), node2, node1 } });
+        }
+    }
+
+    for (const auto& object : _objects)
+    {
+        if (!object->isObstacle() || !object->isOnMap())
+            continue;
+
+        for (auto& connectionLoad : _dummies[object->currentSegment().from()])
+        {
+            const auto& loadSegment = connectionLoad.segment();
+            const auto& objectSegment = object->currentSegment();
+            if (loadSegment.wayId() == objectSegment.wayId() && loadSegment.to() == objectSegment.to())
+                connectionLoad.append(*object);
+        }
+    }
+
+    for (auto& nodeOutputLoads : _dummies)
+        for (auto& connectionLoad : nodeOutputLoads)
+            connectionLoad.sortTraffic();
+}
+
 void TrafficSimulation::fillDummies() {
 	for (const auto& object : _objects)
 	{
-		if (!object.isObstacle() || !object.isOnMap())
+        if (!object->isObstacle() || !object->isOnMap())
 			continue;
 
-		for (auto& connectionLoad : _dummies[object.currentSegment().from()])
+        for (auto& connectionLoad : _dummies[object->currentSegment().from()])
 		{
 			const auto& loadSegment = connectionLoad.segment();
-			const auto& objectSegment = object.currentSegment();
+            const auto& objectSegment = object->currentSegment();
 			if (loadSegment.wayId() == objectSegment.wayId() && loadSegment.to() == objectSegment.to())
-				connectionLoad.append(object);
+                connectionLoad.append(*object);
 		}
 	}
 
@@ -142,11 +186,11 @@ void TrafficSimulation::fillDummies() {
 void TrafficSimulation::updateObjects() {
 	for (auto& object : _objects)
 	{
-		const auto nextObjInfo = findNextObject(object);
+        const auto nextObjInfo = findNextObject(*object);
 		if (!nextObjInfo.has_value())
-			object.update(1e7, 100.);
-
-		object.update(nextObjInfo->second, nextObjInfo->first.speed());
+            object->update(1e7, 100.);
+        else
+            object->update(nextObjInfo->second, nextObjInfo->first.speed());
 	}
 }
 
@@ -155,16 +199,51 @@ void TrafficSimulation::clearDummies() {
 		for (auto& load : nodeOutputLoads)
 			load.reset();
 }
-void TrafficSimulation::addNewObjects() {
-    // only add traffic signals on the first call
-    // fill cars list until the list is full - how much is a full list?
+
+void TrafficSimulation::addTrafficSignals() {
+    for (const auto& way : MapData::instance().ways())
+    {
+        for (size_t i = 0; i < way.refs().size() - 1; i++){
+            const id_t nodeId1 = way.refs()[i];
+            const id_t nodeId2 = way.refs()[i + 1];
+
+            if (const auto label = MapData::instance().synchroLabel(nodeId2, nodeId1))
+            {
+                if (label == 1)
+                    _objects.push_back(std::make_unique<TrafficSignal>(Connection{way.id(), nodeId2, nodeId1}, 600, 600, 600));
+                else
+                    _objects.push_back(std::make_unique<TrafficSignal>(Connection{way.id(), nodeId2, nodeId1}, 0, 600, 600));
+            }
+
+            if (const auto label = MapData::instance().synchroLabel(nodeId1, nodeId2))
+            {
+                if (label == 1)
+                    _objects.push_back(std::make_unique<TrafficSignal>(Connection{way.id(), nodeId1, nodeId2}, 600, 600, 600));
+                else
+                    _objects.push_back(std::make_unique<TrafficSignal>(Connection{way.id(), nodeId1, nodeId2}, 0, 600, 600));
+            }
+        }
+    }
+}
+
+void TrafficSimulation::addCars() {
+    while (_objects.size() < 3000)
+    {
+        const id_t from = _randomNodeGenerator.rand();
+        const id_t to = _randomNodeGenerator.rand();
+        const auto path = _pathFinder.shortestPathBetweenCrossroads(from, to);
+        if (path.empty())
+            continue;
+
+        _objects.push_back(std::make_unique<TrafficCar>(path));
+    }
 }
 
 void TrafficSimulation::deleteOffMapObjects() {
 	std::vector<size_t> idsToDelete;
 
 	for (size_t i = 0; i < _objects.size(); i++)
-		if (!_objects[i].isOnMap())
+        if (!_objects[i]->isOnMap())
 			idsToDelete.push_back(i);
 
 	std::reverse(idsToDelete.begin(), idsToDelete.end());

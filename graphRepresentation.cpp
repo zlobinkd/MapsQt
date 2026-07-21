@@ -194,9 +194,7 @@ void GraphRepresentation::unfoldNodes(id_t i) {
 	}
 }
 
-std::vector<Connection> GraphRepresentation::shortestPath(id_t from, id_t to) {
-	unfoldNodes(from);
-	unfoldNodes(to);
+std::vector<Connection> GraphRepresentation::shortestPathImpl(id_t from, id_t to) const {
 	// init algorithm containers
 	auto routeLengths = std::vector<double>(MapData::instance().nodes().size(), std::numeric_limits<double>().max());
 	auto prevNodes = std::vector<std::pair<id_t, const Way*>>(MapData::instance().nodes().size(), { 0, nullptr });
@@ -220,8 +218,14 @@ std::vector<Connection> GraphRepresentation::shortestPath(id_t from, id_t to) {
 				}
 			}
 		}
+        if (currentNodes == nextNodes)
+            return {};
+
 		currentNodes = nextNodes;
 	}
+
+    if (routeLengths[to] == std::numeric_limits<double>().max())
+        return {};
 
 	// find the actual route
 	std::vector<Connection> route;
@@ -236,10 +240,21 @@ std::vector<Connection> GraphRepresentation::shortestPath(id_t from, id_t to) {
 			}
 		}
 		currentNode = prevNodes[currentNode].first;
-	}
-
-	mergeNodes(from);
-	mergeNodes(to);
+    }
 
 	return route;
+}
+
+std::vector<Connection> GraphRepresentation::shortestPath(id_t from, id_t to) {
+    unfoldNodes(from);
+    unfoldNodes(to);
+    const auto route = shortestPathImpl(from, to);
+    mergeNodes(from);
+    mergeNodes(to);
+
+    return route;
+}
+
+std::vector<Connection> GraphRepresentation::shortestPathBetweenCrossroads(id_t from, id_t to) const {
+    return shortestPathImpl(from, to);
 }
