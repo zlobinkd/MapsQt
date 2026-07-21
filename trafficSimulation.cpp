@@ -140,7 +140,7 @@ void TrafficSimulation::initDummies() {
         for (size_t i = 1; i < way.refs().size(); i++) {
             const id_t node1 = way.refs()[i - 1];
             const id_t node2 = way.refs()[i];
-            _dummies[node1].emplace_back(ConnectionLoad{ Connection{ way.id(), node2, node1 } });
+            _dummies[node2].emplace_back(ConnectionLoad{ Connection{ way.id(), node2, node1 } });
         }
     }
 
