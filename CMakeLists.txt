@@ -14,7 +14,6 @@ qt_add_executable(appMapsQt
     connection.cpp connection.h
     core.h
     dynamicMapGraphicsItem.cpp dynamicMapGraphicsItem.h
-    dynamicGuiRepresentation.cpp dynamicGuiRepresentation.h
     graphRepresentation.cpp graphRepresentation.h
     guiRepresentation.cpp guiRepresentation.h
     hash.h

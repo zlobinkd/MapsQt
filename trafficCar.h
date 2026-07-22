@@ -22,6 +22,11 @@ public:
 	// if the car reached its destination, it is no longer on the map
 	bool isOnMap() const override;
 
+    // visualization on the map
+    QPair<QPair<QColor, int>, QPointF> point() const override;
+
+    std::vector<ScaleAreaInformation> scaleAreaInfo() const override;
+
 private:
 	const std::vector<Connection> _route;
 	double _speed = 0.;

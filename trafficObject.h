@@ -2,6 +2,9 @@
 
 #include "core.h"
 #include "connection.h"
+#include "bounds.h"
+
+#include <QPen>
 
 // base class for objects that are simulated as traffic.
 class TrafficObject {
@@ -22,4 +25,9 @@ public:
 
 	// is an obstacle for other traffic objects?
 	virtual bool isObstacle() const;
+
+    // visualization on the map
+    virtual QPair<QPair<QColor, int>, QPointF> point() const = 0;
+
+    virtual std::vector<ScaleAreaInformation> scaleAreaInfo() const = 0;
 };

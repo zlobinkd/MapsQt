@@ -7,7 +7,6 @@
 #include <QGraphicsSceneWheelEvent>
 #include <QMutex>
 
-#include "dynamicGuiRepresentation.h"
 #include "mapGraphicsItem.h"
 
 class DynamicMapGraphicsItem : public QObject, public QGraphicsItem {
@@ -18,7 +17,9 @@ public:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
     QRectF boundingRect() const override;
 
-    void updateData(DynamicGuiRepresentation&& newData);
+    Bounds bounds() const;
+
+    void updateData(QHash<QPair<QColor, int>, QVector<QPointF>>&& newData);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -33,7 +34,7 @@ private:
     QRectF getVisibleItemRect() const;
 
     // dynamic points on the map
-    DynamicGuiRepresentation _data;
+    QHash<QPair<QColor, int>, QVector<QPointF>> _data;
     mutable QMutex _mutex;
 
     const MapGraphicsItem* const _staticMapItem;

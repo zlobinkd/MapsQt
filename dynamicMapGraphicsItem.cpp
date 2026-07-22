@@ -17,12 +17,11 @@ DynamicMapGraphicsItem::DynamicMapGraphicsItem(const MapGraphicsItem* const stat
 
 void DynamicMapGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
     QMutexLocker locker(&_mutex);
-    const auto& pointsToVisualize = _data.pointsToVisualize(_staticMapItem->bounds());
 
     painter->save();
     painter->setTransform(_staticMapItem->sceneTransform(), true);
 
-    for (const auto& [pen, points] : pointsToVisualize.asKeyValueRange()) {
+    for (const auto& [pen, points] : _data.asKeyValueRange()) {
         painter->setPen(QPen(pen.first, pen.second));
         painter->drawPoints(points);
     }
@@ -34,7 +33,11 @@ QRectF DynamicMapGraphicsItem::boundingRect() const {
     return QRectF{ 0, 0, MapData::instance().imageSizeX(), MapData::instance().imageSizeY() };
 }
 
-void DynamicMapGraphicsItem::updateData(DynamicGuiRepresentation&& data) {
+Bounds DynamicMapGraphicsItem::bounds() const {
+    return _staticMapItem->bounds();
+}
+
+void DynamicMapGraphicsItem::updateData(QHash<QPair<QColor, int>, QVector<QPointF>>&& data) {
     QMutexLocker locker(&_mutex);
     _data = std::move(data);
     emit dataUpdated();

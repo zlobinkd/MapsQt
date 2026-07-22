@@ -5,6 +5,7 @@
 #include <QPainter>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsSceneWheelEvent>
+#include <QMutex>
 
 #include <optional>
 
@@ -19,7 +20,7 @@ public:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
     QRectF boundingRect() const override;
 
-    inline const Bounds& bounds() const { return _bounds; }
+    Bounds bounds() const;
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -38,6 +39,7 @@ private:
     Map _map;
     // Bounds for current viewport
     Bounds _bounds = MapData::instance().bounds();
+    mutable QMutex _mutex;
 
     // item transformation
     qreal _zoomFactor = 1.0;

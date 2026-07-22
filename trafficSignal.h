@@ -20,6 +20,11 @@ public:
 	// is red signal?
 	virtual bool isObstacle() const override;
 
+    // visualization on the map
+    QPair<QPair<QColor, int>, QPointF> point() const override;
+
+    std::vector<ScaleAreaInformation> scaleAreaInfo() const override;
+
 private:
 	const Connection _segment;
 	// internal clock

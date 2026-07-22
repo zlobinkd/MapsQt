@@ -1,6 +1,7 @@
 #include "trafficCar.h"
 #include "way.h"
 #include "settings.h"
+#include "mapData.h"
 
 #include <algorithm>
 #include <cmath>
@@ -83,4 +84,26 @@ const std::vector<Connection> TrafficCar::remainingRoute() const {
 
 bool TrafficCar::isOnMap() const {
 	return _currentConnectionId < _route.size();
+}
+
+QPair<QPair<QColor, int>, QPointF> TrafficCar::point() const {
+    const id_t from = currentSegment().from();
+    const id_t to = currentSegment().to();
+    const auto& node1 = MapData::instance().nodes()[from];
+    const auto& node2 = MapData::instance().nodes()[to];
+    const auto node = Node::pointOnLine(node1, node2, _progressOnCurrentSegment);
+
+    const auto [y, x] = node.localCoords(MapData::instance().bounds());
+    const auto pen = QPair<QColor, int>{Qt::black, 5};
+    const auto point = QPointF{ MapData::instance().imageSizeX() * x, MapData::instance().imageSizeY() * y };
+    return { pen, point };
+}
+
+std::vector<ScaleAreaInformation> TrafficCar::scaleAreaInfo() const {
+    const id_t from = currentSegment().from();
+    const id_t to = currentSegment().to();
+    const auto& node1 = MapData::instance().nodes()[from];
+    const auto& node2 = MapData::instance().nodes()[to];
+    const auto node = Node::pointOnLine(node1, node2, _progressOnCurrentSegment);
+    return ScaleAreaInformation::areaInfos(node);
 }

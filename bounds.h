@@ -26,7 +26,13 @@ struct ScaleAreaInformation {
     static std::vector<ScaleAreaInformation> areaInfos(const Way&);
 	// returns all areas of all scales, that intersect with the given rectangle.
 	static std::vector<ScaleAreaInformation> areaInfos(double x1, double y1, double x2, double y2);
+
+    friend bool operator!=(const ScaleAreaInformation& lhs, const ScaleAreaInformation& rhs);
+    friend bool operator==(const ScaleAreaInformation& lhs, const ScaleAreaInformation& rhs);
 };
+
+bool operator!=(const ScaleAreaInformation& lhs, const ScaleAreaInformation& rhs);
+bool operator==(const ScaleAreaInformation& lhs, const ScaleAreaInformation& rhs);
 
 // class for boundaries of an aerial image.
 // lon - longtitude, lat - latitude.

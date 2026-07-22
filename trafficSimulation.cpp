@@ -4,7 +4,6 @@
 #include "trafficSignal.h"
 #include "mapData.h"
 #include "highwayClassification.h"
-#include "dynamicGuiRepresentation.h"
 #include "settings.h"
 
 #include <algorithm>
@@ -74,17 +73,23 @@ void TrafficSimulation::run() {
 
 void TrafficSimulation::dump() const
 {
-    std::vector<Node> pts;
+    QHash<QPair<QColor, int>, QVector<QPointF>> pts;
+    const auto scaleAndCoords = _graphicsItem->bounds().scaleAndCoords();
     for (const auto& object : _objects)
     {
-        const id_t from = object->currentSegment().from();
-        const id_t to = object->currentSegment().to();
-        const auto& node1 = MapData::instance().nodes()[from];
-        const auto& node2 = MapData::instance().nodes()[to];
-        pts.push_back(Node::pointOnLine(node1, node2, object->progressOnCurrentSegment()));
+        const auto scalesAndCoords = object->scaleAreaInfo();
+        const bool isPtVisible = std::find_if(scalesAndCoords.begin(), scalesAndCoords.end(),
+                                              [&scaleAndCoords](const auto& el){ return el == scaleAndCoords; })
+                                 != scalesAndCoords.end();
+
+        if (!isPtVisible)
+            continue;
+
+        const auto pt = object->point();
+        pts[pt.first].push_back(pt.second);
     }
 
-    _graphicsItem->updateData(DynamicGuiRepresentation{pts});
+    _graphicsItem->updateData(std::move(pts));
 }
 
 void TrafficSimulation::updateStep() {

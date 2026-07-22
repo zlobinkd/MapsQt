@@ -44,6 +44,11 @@ QRectF MapGraphicsItem::boundingRect() const {
     return QRectF{ 0, 0, MapData::instance().imageSizeX(), MapData::instance().imageSizeY() };
 }
 
+Bounds MapGraphicsItem::bounds() const {
+    QMutexLocker locker(&_mutex);
+    return _bounds;
+}
+
 void MapGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
     if (event->button() == Qt::LeftButton) {
         _isPanning = true;
@@ -166,6 +171,7 @@ void MapGraphicsItem::updateBounds() {
     const auto [minLat, minLon] = toLatLon(visibleRect.bottomLeft());
     const auto [maxLat, maxLon] = toLatLon(visibleRect.topRight());
 
+    QMutexLocker locker(&_mutex);
     _bounds = Bounds{minLat, maxLat, minLon, maxLon};
 }
 

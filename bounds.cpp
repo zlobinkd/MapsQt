@@ -70,6 +70,20 @@ std::vector<ScaleAreaInformation> ScaleAreaInformation::areaInfos(const Way& way
     return areaInfos(x1, y1, x2, y2);
 }
 
+bool operator!=(const ScaleAreaInformation& lhs, const ScaleAreaInformation& rhs) {
+    return !operator==(lhs, rhs);
+}
+
+bool operator==(const ScaleAreaInformation& lhs, const ScaleAreaInformation& rhs) {
+    if (lhs.scale != rhs.scale)
+        return false;
+    if (lhs.x != rhs.x)
+        return false;
+    if (lhs.y != rhs.y)
+        return false;
+    return true;
+}
+
 Bounds::Bounds(const double minLat, const double maxLat, const double minLon, const double maxLon)
 	: _minLat(minLat), 
 	  _maxLat(maxLat), 
