@@ -20,15 +20,17 @@ void TrafficCar::update(const double distanceToNextObject, const double nextObje
 			+ _speed * speedDifference / (2 * std::sqrt(maxAcceleration * maxDeceleration))
 		);
 
-	const double speedUpdate = maxAcceleration *
-		(1 
-			- std::pow(_speed / currentSegment().way().speedLimit(), 4) 
-			- std::pow(desiredGap / distanceToNextObject, 2)
+    const double speedUpdate = maxAcceleration *
+        (1
+            - std::pow(_speed / currentSegment().way().speedLimit(), 4)
+            - std::pow(desiredGap / distanceToNextObject, 2)
 		);
 
+    const double speedUpdateClamped = std::max(-_speed, speedUpdate);
+
 	constexpr double dt = 0.1;
-	const double positionAdvance = _speed * dt + speedUpdate * dt / 2;
-	_speed += speedUpdate;
+    const double positionAdvance = _speed * dt + speedUpdateClamped * dt / 2;
+    _speed += speedUpdateClamped;
 	if (positionAdvance < 0.)
 		return;
 

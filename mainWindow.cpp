@@ -6,6 +6,10 @@
 #include <QDebug>
 #include <QRandomGenerator>
 #include <QGraphicsView>
+#include <thread>
+
+#include "dynamicMapGraphicsItem.h"
+#include "trafficSimulation.h"
 
 MainWindow::MainWindow() {
     QGraphicsScene* scene = new QGraphicsScene(this);
@@ -20,6 +24,15 @@ MainWindow::MainWindow() {
 
     auto* lineItem = new MapGraphicsItem();
     scene->addItem(lineItem);
+
+    auto* pointItem = new DynamicMapGraphicsItem(lineItem);
+    scene->addItem(pointItem);
+
+    std::thread simThread([pointItem]() {
+        TrafficSimulation sim(pointItem);
+        sim.run();  // This will run in the background
+    });
+    simThread.detach();
 
     setCentralWidget(view);
 }

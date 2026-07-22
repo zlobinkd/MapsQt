@@ -38,7 +38,9 @@ static int browseMap(int argc, char *argv[]) {
 
 int main(int argc, char *argv[])
 {
-    TrafficSimulation sim;
+    //TrafficSimulation sim;
 
-    sim.run();
+    //sim.run();
+
+    browseMap(argc, argv);
 }

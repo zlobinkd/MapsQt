@@ -32,6 +32,12 @@ double Node::distance(const Node& first, const Node& second) {
 	return 6.4e6 * sqrt(dy2 + dx2);
 }
 
+Node Node::pointOnLine(const Node& left, const Node& right, double progression) {
+    const double lat = left._lat + progression * (right._lat - left._lat);
+    const double lon = left._lon + progression * (right._lon - left._lon);
+    return Node{ 0, lat, lon, {} };
+}
+
 bool Node::hasTag(const std::string& tag) const {
 	for (const auto& [key, _] : _tags)
 		if (key == tag)

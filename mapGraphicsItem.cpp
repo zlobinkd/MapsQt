@@ -17,7 +17,7 @@ MapGraphicsItem::MapGraphicsItem() {
 void MapGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
     // Your existing paint code
     updateBounds();
-    auto waysToVisualize = _map.waysToVisualize(_bounds);
+    const auto& waysToVisualize = _map.waysToVisualize(_bounds);
 
     painter->setBackground(Qt::lightGray);
     for (const auto& [pen, ways] : waysToVisualize.asKeyValueRange()) {

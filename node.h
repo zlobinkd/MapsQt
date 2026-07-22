@@ -24,6 +24,8 @@ public:
 	std::array<double, 2> localCoords(const Bounds& bounds) const;
 	// distance between two nodes in meters
 	static double distance(const Node& one, const Node& other);
+    // point between nodes
+    static Node pointOnLine(const Node& left, const Node& right, double progression);
 
 	bool hasTag(const std::string& tag) const;
 	bool hasTagValue(const std::string& tag) const;

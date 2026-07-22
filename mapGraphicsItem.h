@@ -17,7 +17,9 @@ public:
     MapGraphicsItem();
 
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
-    QRectF boundingRect() const override{ return QRectF{0, 0, GuiRepresentation::ImageSize, GuiRepresentation::ImageSize}; }
+    QRectF boundingRect() const override { return QRectF{0, 0, GuiRepresentation::ImageSize, GuiRepresentation::ImageSize}; }
+
+    inline const Bounds& bounds() const { return _bounds; }
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

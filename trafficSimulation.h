@@ -7,6 +7,7 @@
 #include "connection.h"
 #include "graphRepresentation.h"
 #include "random.h"
+#include "dynamicMapGraphicsItem.h"
 
 #include <vector>
 #include <memory>
@@ -32,7 +33,7 @@ private:
 // class for traffic simulation
 class TrafficSimulation {
 public:
-    TrafficSimulation();
+    TrafficSimulation(DynamicMapGraphicsItem* item);
 
 	// run simulation
 	void run();
@@ -68,4 +69,6 @@ private:
 
     GraphRepresentation _pathFinder;
     Random _randomNodeGenerator;
+
+    DynamicMapGraphicsItem* _graphicsItem;
 };

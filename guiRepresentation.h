@@ -4,14 +4,11 @@
 #include "way.h"
 #include "bounds.h"
 
-#include "QHash"
 #include "QVector"
 #include "QPen"
 #include "QLineF"
 
-inline uint qHash(const QColor &key, uint seed = 0) {
-    return qHash(key.rgba(), seed);
-}
+#include "hash.h"
 
 // map representation, optimized for GUI.
 class GuiRepresentation {

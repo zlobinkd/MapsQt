@@ -13,8 +13,11 @@ qt_add_executable(appMapsQt
     bounds.cpp bounds.h
     connection.cpp connection.h
     core.h
+    dynamicMapGraphicsItem.cpp dynamicMapGraphicsItem.h
+    dynamicGuiRepresentation.cpp dynamicGuiRepresentation.h
     graphRepresentation.cpp graphRepresentation.h
     guiRepresentation.cpp guiRepresentation.h
+    hash.h
     highwayClassification.cpp highwayClassification.h
     iniReader.cpp iniReader.h
     map.cpp map.h

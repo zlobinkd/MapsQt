@@ -4,6 +4,7 @@
 #include "trafficSignal.h"
 #include "mapData.h"
 #include "highwayClassification.h"
+#include "dynamicGuiRepresentation.h"
 
 #include <algorithm>
 
@@ -58,7 +59,7 @@ void ConnectionLoad::reset() {
 	_traffic.clear();
 }
 
-TrafficSimulation::TrafficSimulation() : _pathFinder(isHighway), _randomNodeGenerator(crossroadsNodes()) {}
+TrafficSimulation::TrafficSimulation(DynamicMapGraphicsItem* item) : _pathFinder(isHighway), _randomNodeGenerator(crossroadsNodes()), _graphicsItem(item) {}
 
 void TrafficSimulation::run() {
     addTrafficSignals();
@@ -71,7 +72,19 @@ void TrafficSimulation::run() {
 }
 
 void TrafficSimulation::dump() const
-{}
+{
+    std::vector<Node> pts;
+    for (const auto& object : _objects)
+    {
+        const id_t from = object->currentSegment().from();
+        const id_t to = object->currentSegment().to();
+        const auto& node1 = MapData::instance().nodes()[from];
+        const auto& node2 = MapData::instance().nodes()[to];
+        pts.push_back(Node::pointOnLine(node1, node2, object->progressOnCurrentSegment()));
+    }
+
+    _graphicsItem->updateData(DynamicGuiRepresentation{pts});
+}
 
 void TrafficSimulation::updateStep() {
     addCars();
@@ -210,17 +223,17 @@ void TrafficSimulation::addTrafficSignals() {
             if (const auto label = MapData::instance().synchroLabel(nodeId2, nodeId1))
             {
                 if (label == 1)
-                    _objects.push_back(std::make_unique<TrafficSignal>(Connection{way.id(), nodeId2, nodeId1}, 600, 600, 600));
+                    _objects.push_back(std::make_unique<TrafficSignal>(Connection{way.id(), nodeId1, nodeId2}, 600, 600, 600));
                 else
-                    _objects.push_back(std::make_unique<TrafficSignal>(Connection{way.id(), nodeId2, nodeId1}, 0, 600, 600));
+                    _objects.push_back(std::make_unique<TrafficSignal>(Connection{way.id(), nodeId1, nodeId2}, 0, 600, 600));
             }
 
             if (const auto label = MapData::instance().synchroLabel(nodeId1, nodeId2))
             {
                 if (label == 1)
-                    _objects.push_back(std::make_unique<TrafficSignal>(Connection{way.id(), nodeId1, nodeId2}, 600, 600, 600));
+                    _objects.push_back(std::make_unique<TrafficSignal>(Connection{way.id(), nodeId2, nodeId1}, 600, 600, 600));
                 else
-                    _objects.push_back(std::make_unique<TrafficSignal>(Connection{way.id(), nodeId1, nodeId2}, 0, 600, 600));
+                    _objects.push_back(std::make_unique<TrafficSignal>(Connection{way.id(), nodeId2, nodeId1}, 0, 600, 600));
             }
         }
     }
