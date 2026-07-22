@@ -1,13 +1,9 @@
 #include "dynamicGuiRepresentation.h"
 #include "mapData.h"
-#include "guiRepresentation.h"
-
-qreal DynamicGuiRepresentation::ImgSizeX = GuiRepresentation::ImageSize * MapData::instance().bounds().aspectRatio();
-qreal DynamicGuiRepresentation::ImgSizeY = GuiRepresentation::ImageSize;
 
 void DynamicGuiRepresentation::Area::insertNode(const Node& node) {
     const auto [y, x] = node.localCoords(MapData::instance().bounds());
-    _nodes[QPair<QColor, int>{Qt::black, 5}].push_back(QPointF{ ImgSizeX * x, ImgSizeY * y });
+    _nodes[QPair<QColor, int>{Qt::black, 5}].push_back(QPointF{ MapData::instance().imageSizeX() * x, MapData::instance().imageSizeY() * y });
 }
 
 const QHash<QPair<QColor, int>, QVector<QPointF>>& DynamicGuiRepresentation::Area::nodes() const {

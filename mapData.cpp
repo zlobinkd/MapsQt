@@ -1,6 +1,6 @@
 #include "mapData.h"
 #include "myXmlParser.h"
-#include "iniReader.h"
+#include "settings.h"
 
 #include <iostream>
 #include <fstream>
@@ -53,10 +53,7 @@ static std::vector<TrafficSignalAssignment> readTrafficSignalAssignments(std::st
 }
 
 MapData::MapData() {
-    IniReader iniReader;
-    iniReader.read();
-
-    auto res = parseXML(iniReader.mapFilePath());
+    auto res = parseXML(Settings::instance().mapFilePath());
 
 	if (!res.has_value())
 		return;
@@ -67,8 +64,12 @@ MapData::MapData() {
 	_ways = ways;
 	_relations = relations;
 	_bounds = bounds;
+
+    _imageSizeX = Settings::instance().imageSize() * _bounds.aspectRatio();
+    _imageSizeY = Settings::instance().imageSize();
+
 	_synchroIndex = std::vector<std::optional<size_t>>(_nodes.size());
-    const auto assignments = readTrafficSignalAssignments(iniReader.trafficSignalAssignmentsFilePath());
+    const auto assignments = readTrafficSignalAssignments(Settings::instance().trafficSignalAssignmentsFilePath());
 	id_t currentTrafficSignalId = 0;
 	for (const auto& assignment : assignments) {
         if (assignment.pointId >= _synchroIndex.size())

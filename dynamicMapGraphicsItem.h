@@ -7,7 +7,6 @@
 #include <QGraphicsSceneWheelEvent>
 #include <QMutex>
 
-#include "guiRepresentation.h"
 #include "dynamicGuiRepresentation.h"
 #include "mapGraphicsItem.h"
 
@@ -17,7 +16,7 @@ public:
     DynamicMapGraphicsItem(const MapGraphicsItem* const staticMapItem);
 
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
-    QRectF boundingRect() const override { return QRectF{ 0, 0, GuiRepresentation::ImageSize, GuiRepresentation::ImageSize }; }
+    QRectF boundingRect() const override;
 
     void updateData(DynamicGuiRepresentation&& newData);
 
@@ -38,5 +37,5 @@ private:
     mutable QMutex _mutex;
 
     const MapGraphicsItem* const _staticMapItem;
-    std::atomic<bool> _updatePending{false};
+    std::atomic<bool> _updatePending{ false };
 };

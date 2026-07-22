@@ -31,6 +31,9 @@ public:
 	// whole map boundaries
 	const Bounds& bounds() const { return _bounds; }
 
+    inline double imageSizeX() const { return _imageSizeX; }
+    inline double imageSizeY() const { return _imageSizeY; }
+
 	std::optional<int> synchroLabel(id_t node, id_t neighbor) const;
 
 private:
@@ -42,4 +45,7 @@ private:
 	Bounds _bounds;
 	std::vector<TrafficSignalSynchro> _trafficSignalSynchros;
 	std::vector<std::optional<size_t>> _synchroIndex;
+
+    double _imageSizeX;
+    double _imageSizeY;
 };

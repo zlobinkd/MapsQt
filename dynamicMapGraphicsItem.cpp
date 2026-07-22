@@ -1,4 +1,5 @@
 #include "dynamicMapGraphicsItem.h"
+#include "mapData.h"
 #include <QWheelEvent>
 #include <QGraphicsScene>
 #include <QGraphicsView>
@@ -27,6 +28,10 @@ void DynamicMapGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphics
     }
 
     painter->restore();
+}
+
+QRectF DynamicMapGraphicsItem::boundingRect() const {
+    return QRectF{ 0, 0, MapData::instance().imageSizeX(), MapData::instance().imageSizeY() };
 }
 
 void DynamicMapGraphicsItem::updateData(DynamicGuiRepresentation&& data) {

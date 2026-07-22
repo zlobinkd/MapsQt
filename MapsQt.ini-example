@@ -1,2 +1,10 @@
 pathToMap=C:\\MapsFiles\\mapAachen3
 pathToTrafficSignalClustering=C:\\MapsFiles\\streetSignalsAachen_clustered.csv
+imageSize=25000
+simulationPoolSize=3000
+sampleTime=0.1
+trafficLightSinglePhaseDuration=60
+minDesiredGap=7
+safeReactionTime=1.5
+maxAcceleration=1.4
+maxDeceleration=2

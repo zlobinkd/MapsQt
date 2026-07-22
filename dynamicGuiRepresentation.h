@@ -18,8 +18,6 @@ public:
     // ways from the grid position according to current image boundaries
     const QHash<QPair<QColor, int>, QVector<QPointF>>& pointsToVisualize(const Bounds&) const;
 
-    constexpr static int ImageSize = 25000;
-
 private:
     // grid position entry.
     class Area {
@@ -32,10 +30,6 @@ private:
     private:
         QHash<QPair<QColor, int>, QVector<QPointF>> _nodes;
     };
-
-    // size of map in item coordinates
-    static qreal ImgSizeX;
-    static qreal ImgSizeY;
 
     // grid.
     using MapImpl = std::vector<std::vector<Area>>;

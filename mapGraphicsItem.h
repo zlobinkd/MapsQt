@@ -17,7 +17,7 @@ public:
     MapGraphicsItem();
 
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
-    QRectF boundingRect() const override { return QRectF{0, 0, GuiRepresentation::ImageSize, GuiRepresentation::ImageSize}; }
+    QRectF boundingRect() const override;
 
     inline const Bounds& bounds() const { return _bounds; }
 
@@ -33,10 +33,6 @@ private:
 
     std::array<double, 2> toLatLon(const QPointF& pt) const;
     QPointF nodePosition(id_t) const;
-
-    // size of map in item coordinates
-    static qreal ImgSizeX;
-    static qreal ImgSizeY;
 
     // map impl
     Map _map;

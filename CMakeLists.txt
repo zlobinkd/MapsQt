@@ -19,7 +19,6 @@ qt_add_executable(appMapsQt
     guiRepresentation.cpp guiRepresentation.h
     hash.h
     highwayClassification.cpp highwayClassification.h
-    iniReader.cpp iniReader.h
     map.cpp map.h
     mapData.cpp mapData.h
     mapFiltering.cpp mapFiltering.h
@@ -28,6 +27,7 @@ qt_add_executable(appMapsQt
     node.cpp node.h
     random.cpp random.h
     relation.cpp relation.h
+    settings.cpp settings.h
     trafficCar.cpp trafficCar.h
     trafficDummy.cpp trafficDummy.h
     trafficObject.cpp trafficObject.h

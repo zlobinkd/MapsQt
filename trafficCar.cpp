@@ -1,5 +1,6 @@
 #include "trafficCar.h"
 #include "way.h"
+#include "settings.h"
 
 #include <algorithm>
 #include <cmath>
@@ -8,10 +9,10 @@
 TrafficCar::TrafficCar(const std::vector<Connection>& route) : _route(route) {}
 
 void TrafficCar::update(const double distanceToNextObject, const double nextObjectSpeed) {
-	constexpr double minDesiredGap = 7.;
-	constexpr double safeReactionTime = 1.5;
-	constexpr double maxAcceleration = 1.4;
-	constexpr double maxDeceleration = 2.;
+    const double minDesiredGap = Settings::instance().minDesiredGap();
+    const double safeReactionTime = Settings::instance().safeReactionTime();
+    const double maxAcceleration = Settings::instance().maxAcceleration();
+    const double maxDeceleration = Settings::instance().maxDeceleration();
 
 	const double speedDifference = _speed - nextObjectSpeed;
 	const double desiredGap = minDesiredGap 
@@ -28,7 +29,7 @@ void TrafficCar::update(const double distanceToNextObject, const double nextObje
 
     const double speedUpdateClamped = std::max(-_speed, speedUpdate);
 
-	constexpr double dt = 0.1;
+    const double dt = Settings::instance().sampleTime();
     const double positionAdvance = _speed * dt + speedUpdateClamped * dt / 2;
     _speed += speedUpdateClamped;
 	if (positionAdvance < 0.)

@@ -3,9 +3,6 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 
-qreal MapGraphicsItem::ImgSizeX = GuiRepresentation::ImageSize * MapData::instance().bounds().aspectRatio();
-qreal MapGraphicsItem::ImgSizeY = GuiRepresentation::ImageSize;
-
 MapGraphicsItem::MapGraphicsItem() {
     setFlag(QGraphicsItem::ItemIsSelectable, false);
     setFlag(QGraphicsItem::ItemIsMovable, false);
@@ -41,6 +38,10 @@ void MapGraphicsItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* o
 
     painter->setPen(QPen{Qt::red, 2});
     painter->drawLines(_route);
+}
+
+QRectF MapGraphicsItem::boundingRect() const {
+    return QRectF{ 0, 0, MapData::instance().imageSizeX(), MapData::instance().imageSizeY() };
 }
 
 void MapGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
@@ -169,11 +170,11 @@ void MapGraphicsItem::updateBounds() {
 }
 
 std::array<double, 2> MapGraphicsItem::toLatLon(const QPointF& pt) const {
-    return MapData::instance().bounds().globalCoords(pt.y() / ImgSizeY, pt.x() / ImgSizeX);
+    return MapData::instance().bounds().globalCoords(pt.y() / MapData::instance().imageSizeY(), pt.x() / MapData::instance().imageSizeX());
 }
 
 QPointF MapGraphicsItem::nodePosition(const id_t id) const {
     const auto& node = MapData::instance().nodes()[id];
     const auto [y, x] = node.localCoords(MapData::instance().bounds());
-    return QPointF{ImgSizeX * x, ImgSizeY * y};
+    return QPointF{MapData::instance().imageSizeX() * x, MapData::instance().imageSizeY() * y};
 }

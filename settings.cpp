@@ -1,4 +1,4 @@
-#include "iniReader.h"
+#include "settings.h"
 #include <iostream>
 #include <fstream>
 
@@ -8,7 +8,7 @@ static std::string trim(std::string str) {
     return str;
 }
 
-void IniReader::read() {
+Settings::Settings() {
     std::ifstream file("..\\..\\MapsQt.ini");
     if (!file.is_open())
         std::cerr << "Could not open your dumbass ini file!" << std::endl;;
@@ -35,6 +35,22 @@ void IniReader::read() {
             _mapFilePath = value;
         if (key == "pathToTrafficSignalClustering")
             _trafficSignalAssignmentsFilePath = value;
+        if (key == "imageSize")
+            _imageSize = std::stod(value);
+        if (key == "simulationPoolSize")
+            _simulationPoolSize = std::stoi(value);
+        if (key == "sampleTime")
+            _sampleTime = std::stod(value);
+        if (key == "trafficLightSinglePhaseDuration")
+            _trafficLightSinglePhaseDuration = std::stod(value);
+        if (key == "minDesiredGap")
+            _minDesiredGap = std::stod(value);
+        if (key == "safeReactionTime")
+            _safeReactionTime = std::stod(value);
+        if (key == "maxAcceleration")
+            _maxAcceleration = std::stod(value);
+        if (key == "maxDeceleration")
+            _maxDeceleration = std::stod(value);
     }
 
     file.close();

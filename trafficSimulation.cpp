@@ -5,6 +5,7 @@
 #include "mapData.h"
 #include "highwayClassification.h"
 #include "dynamicGuiRepresentation.h"
+#include "settings.h"
 
 #include <algorithm>
 
@@ -105,7 +106,7 @@ std::optional<std::pair<TrafficDummy, double>> TrafficSimulation::findNextObject
 	{
         for (const auto& connectionLoad : _dummies[route[i].from()]) {
 			const bool isSameWay = connectionLoad.segment().to() == route[i].to()
-				&& connectionLoad.segment().wayId() == object.currentSegment().wayId();
+                && connectionLoad.segment().wayId() == route[i].wayId();
 
 			if (!isSameWay)
 				continue;
@@ -214,6 +215,8 @@ void TrafficSimulation::clearDummies() {
 }
 
 void TrafficSimulation::addTrafficSignals() {
+    const size_t singlePhaseDuration = Settings::instance().trafficLightSinglePhaseDuration() / Settings::instance().sampleTime();
+
     for (const auto& way : MapData::instance().ways())
     {
         for (size_t i = 0; i < way.refs().size() - 1; i++){
@@ -223,24 +226,24 @@ void TrafficSimulation::addTrafficSignals() {
             if (const auto label = MapData::instance().synchroLabel(nodeId2, nodeId1))
             {
                 if (label == 1)
-                    _objects.push_back(std::make_unique<TrafficSignal>(Connection{way.id(), nodeId1, nodeId2}, 600, 600, 600));
+                    _objects.push_back(std::make_unique<TrafficSignal>(Connection{way.id(), nodeId1, nodeId2}, singlePhaseDuration, singlePhaseDuration, singlePhaseDuration));
                 else
-                    _objects.push_back(std::make_unique<TrafficSignal>(Connection{way.id(), nodeId1, nodeId2}, 0, 600, 600));
+                    _objects.push_back(std::make_unique<TrafficSignal>(Connection{way.id(), nodeId1, nodeId2}, 0, singlePhaseDuration, singlePhaseDuration));
             }
 
             if (const auto label = MapData::instance().synchroLabel(nodeId1, nodeId2))
             {
                 if (label == 1)
-                    _objects.push_back(std::make_unique<TrafficSignal>(Connection{way.id(), nodeId2, nodeId1}, 600, 600, 600));
+                    _objects.push_back(std::make_unique<TrafficSignal>(Connection{way.id(), nodeId2, nodeId1}, singlePhaseDuration, singlePhaseDuration, singlePhaseDuration));
                 else
-                    _objects.push_back(std::make_unique<TrafficSignal>(Connection{way.id(), nodeId2, nodeId1}, 0, 600, 600));
+                    _objects.push_back(std::make_unique<TrafficSignal>(Connection{way.id(), nodeId2, nodeId1}, 0, singlePhaseDuration, singlePhaseDuration));
             }
         }
     }
 }
 
 void TrafficSimulation::addCars() {
-    while (_objects.size() < 3000)
+    while (_objects.size() < Settings::instance().simulationPoolSize())
     {
         const id_t from = _randomNodeGenerator.rand();
         const id_t to = _randomNodeGenerator.rand();

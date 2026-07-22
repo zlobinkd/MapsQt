@@ -18,9 +18,7 @@ public:
 	// ways from the grid position according to current image boundaries
     const QHash<QPair<QColor, int>, QVector<QLineF>>& waysToVisualize(const Bounds&) const;
 	// closest map entry for the given arbitrary position
-	id_t closestPoint(double lat, double lon, const Bounds&) const;
-
-    constexpr static int ImageSize = 25000;
+    id_t closestPoint(double lat, double lon, const Bounds&) const;
 
 private:
 	// grid position entry.

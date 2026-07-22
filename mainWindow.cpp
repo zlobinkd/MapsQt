@@ -20,7 +20,7 @@ MainWindow::MainWindow() {
     view->setRenderHint(QPainter::Antialiasing);
 
     // Optional: Set a large scene rect to allow panning
-    scene->setSceneRect(0, 0, GuiRepresentation::ImageSize, GuiRepresentation::ImageSize);
+    scene->setSceneRect(0, 0, MapData::instance().imageSizeX(), MapData::instance().imageSizeY());
 
     auto* lineItem = new MapGraphicsItem();
     scene->addItem(lineItem);
