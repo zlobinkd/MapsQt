@@ -27,7 +27,7 @@ private:
 		Area() = default;
 
 		void insertNode(id_t);
-		void insertWay(id_t);
+        void insertWay(id_t, size_t sizeMultiplier);
 
 		const std::vector<id_t>& nodes() const;
         const QHash<QPair<QColor, int>, QVector<QLineF>>& ways() const;

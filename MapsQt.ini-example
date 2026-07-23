@@ -1,5 +1,5 @@
-pathToMap=C:\\MapsFiles\\mapAachen3
-pathToTrafficSignalClustering=C:\\MapsFiles\\streetSignalsAachen_clustered.csv
+pathToMap=..\\..\\data\\mapAachen3
+pathToTrafficSignalClustering=..\\..\\data\\streetSignalsAachen_clustered.csv
 imageSize=25000
 simulationPoolSize=3000
 sampleTime=0.1

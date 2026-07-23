@@ -58,12 +58,13 @@ void GuiRepresentation::Area::insertNode(const id_t id) {
 	_nodes.push_back(id);
 }
 
-void GuiRepresentation::Area::insertWay(const id_t id) {
+void GuiRepresentation::Area::insertWay(const id_t id, const size_t sizeMultiplier) {
     const auto& way = MapData::instance().ways()[id];
     if (!way.hasTag("highway"))
         return;
 
     QPair<QColor, int> penParams = routePen(way.tagValue("highway"));
+    penParams.second *= sizeMultiplier;
     for (size_t i = 0; i < way.refs().size() - 1; i++){
         const id_t nodeId1 = way.refs()[i];
         const id_t nodeId2 = way.refs()[i + 1];
@@ -127,7 +128,8 @@ GuiRepresentation::GuiRepresentation()
 			if (areaInfo.scale < 4 && !isRoad(way.tagValue("highway")))
 				continue;
 
-			_map[areaInfo.scale][areaInfo.areaIndex()].insertWay(way.id());
+            const size_t scaleSizeMultiplier = 1 << (SCALES_NUM - areaInfo.scale - 1);
+            _map[areaInfo.scale][areaInfo.areaIndex()].insertWay(way.id(), scaleSizeMultiplier);
 		}
 	}
 }
