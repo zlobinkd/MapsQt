@@ -11,6 +11,7 @@
 #include <iostream>
 #include <thread>
 #include <QMutex>
+#include <chrono>
 
 static bool isHighway(const Way& way) {
     if (!way.hasTag("highway"))
@@ -106,6 +107,7 @@ void TrafficSimulation::updateStep() {
     executeAndShowElapsedTime([&](){ updateObjects(); }, "Update objects");
     executeAndShowElapsedTime([&](){ clearDummies(); }, "Clear dummies");
     executeAndShowElapsedTime([&](){ deleteOffMapObjects(); }, "Delete off map objects");
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
 }
 
 std::optional<std::pair<TrafficDummy, double>> TrafficSimulation::findNextObject(const TrafficObject& object) const

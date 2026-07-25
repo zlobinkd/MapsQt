@@ -34,7 +34,9 @@ private:
     std::shared_ptr<TrafficSignal> _trafficSignal;
 };
 
-// class for traffic simulation
+// alternative implementation of the traffic simulation.
+// this has comparable performance and identical calculations,
+// but i find it less tidy.
 class TrafficSimulationAlt {
 public:
     TrafficSimulationAlt(DynamicMapGraphicsItem* item);
