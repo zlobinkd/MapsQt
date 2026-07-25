@@ -9,6 +9,14 @@
 
 TrafficCar::TrafficCar(const std::vector<Connection>& route) : _route(route) {}
 
+static double pow2(const double x) {
+    return x * x;
+}
+
+static double pow4(const double x) {
+    return pow2(x) * pow2(x);
+}
+
 void TrafficCar::update(const double distanceToNextObject, const double nextObjectSpeed) {
     const double minDesiredGap = Settings::instance().minDesiredGap();
     const double safeReactionTime = Settings::instance().safeReactionTime();
@@ -24,8 +32,8 @@ void TrafficCar::update(const double distanceToNextObject, const double nextObje
 
     const double speedUpdate = maxAcceleration *
         (1
-            - std::pow(_speed / currentSegment().way().speedLimit(), 4)
-            - std::pow(desiredGap / distanceToNextObject, 2)
+            - pow4(_speed / currentSegment().way().speedLimit())
+            - pow2(desiredGap / distanceToNextObject)
 		);
 
     const double speedUpdateClamped = std::max(-_speed, speedUpdate);
@@ -36,30 +44,19 @@ void TrafficCar::update(const double distanceToNextObject, const double nextObje
 	if (positionAdvance < 0.)
 		return;
 
-	std::vector<double> nextSegmentDistances;
-	for (size_t i = _currentConnectionId; i < _route.size(); i++) {
-		if (i == _currentConnectionId)
-			nextSegmentDistances.emplace_back((1. - _progressOnCurrentSegment) * currentSegment().distance());
-		else
-			nextSegmentDistances.emplace_back(_route[i].distance());
-	}
+    double distanceToSegmentEnd = (1. - _progressOnCurrentSegment) * currentSegment().distance();
+    size_t index = _currentConnectionId;
+    while (index < _route.size() && distanceToSegmentEnd <= positionAdvance)
+    {
+        index++;
+        distanceToSegmentEnd += _route[index].distance();
+    }
 
-	auto it = std::find_if(nextSegmentDistances.begin(), nextSegmentDistances.end(),
-		[&positionAdvance](const double x) { return x > positionAdvance; });
+    if (index < _route.size()) {
+        const double localPosition = positionAdvance - distanceToSegmentEnd + _route[index].distance();
 
-	if (it != nextSegmentDistances.end()) {
-		size_t index = std::distance(nextSegmentDistances.begin(), it);
-		const double localPositionAdvance = positionAdvance 
-			- std::accumulate(nextSegmentDistances.begin(), nextSegmentDistances.begin() + index, 0);
-
-		_currentConnectionId += index;
-		if (_currentConnectionId >= _route.size())
-			return;
-
-		if (index > 0)
-			_progressOnCurrentSegment = localPositionAdvance / currentSegment().distance();
-		else
-			_progressOnCurrentSegment += localPositionAdvance / currentSegment().distance();
+        _currentConnectionId = index;
+        _progressOnCurrentSegment = localPosition / currentSegment().distance();
 	}
 	else {
 		_currentConnectionId = _route.size();
