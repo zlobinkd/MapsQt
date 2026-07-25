@@ -56,3 +56,22 @@ std::vector<Connection> Connection::explode() const {
 const Way& Connection::way() const {
 	return MapData::instance().ways()[_wayId];
 }
+
+bool operator==(const Connection& lhs, const Connection& rhs){
+    if (lhs._from != rhs._from)
+        return false;
+    if (lhs._to != rhs._to)
+        return false;
+    if (lhs._wayId != rhs._wayId)
+        return false;
+    if (lhs._path.size() != rhs._path.size())
+        return false;
+    for (size_t i = 0; i < lhs._path.size(); i++)
+        if (lhs._path[i] != rhs._path[i])
+            return false;
+    return true;
+}
+
+bool operator!=(const Connection& lhs, const Connection& rhs){
+    return !(lhs == rhs);
+}

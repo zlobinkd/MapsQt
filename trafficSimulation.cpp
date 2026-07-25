@@ -5,8 +5,12 @@
 #include "mapData.h"
 #include "highwayClassification.h"
 #include "settings.h"
+#include "benchmark.h"
 
 #include <algorithm>
+#include <iostream>
+#include <thread>
+#include <QMutex>
 
 static bool isHighway(const Way& way) {
     if (!way.hasTag("highway"))
@@ -39,31 +43,35 @@ static std::vector<id_t> crossroadsNodes() {
 ConnectionLoad::ConnectionLoad(const Connection& connection) : _segment(connection) {}
 
 void ConnectionLoad::append(const TrafficDummy& dummy) {
-	_traffic.emplace_back(dummy);
+    _traffic.emplace_back(dummy);
 }
 
 void ConnectionLoad::sortTraffic() {
-	std::sort(_traffic.begin(), _traffic.end(),
-		[](const TrafficDummy& d1, const TrafficDummy& d2) { return d1.progress() < d2.progress(); });
+    std::sort(_traffic.begin(), _traffic.end(),
+        [](const TrafficDummy& d1, const TrafficDummy& d2) { return d1.progress() < d2.progress(); });
 }
 
 std::optional<TrafficDummy> ConnectionLoad::findNext(const double progress) const {
 	const auto& it = std::find_if(_traffic.begin(), _traffic.end(),
-		[&progress](const TrafficDummy& d) {return d.progress() > progress; });
+        [&progress](const TrafficDummy& d) {return d.progress() > progress; });
 	if (it != _traffic.end())
 		return *it;
-	return std::nullopt;
+    return std::nullopt;
 }
 
 void ConnectionLoad::reset() {
-	_traffic.clear();
+    _traffic.clear();
 }
 
-TrafficSimulation::TrafficSimulation(DynamicMapGraphicsItem* item) : _pathFinder(isHighway), _randomNodeGenerator(crossroadsNodes()), _graphicsItem(item) {}
+TrafficSimulation::TrafficSimulation(DynamicMapGraphicsItem* item) : _pathFinder(isHighway), _graphicsItem(item) {
+    for (size_t i = 0; i < std::thread::hardware_concurrency(); i++)
+        _randomNodeGenerator.push_back(Random{ crossroadsNodes(), i });
+}
 
 void TrafficSimulation::run() {
     addTrafficSignals();
     initDummies();
+    executeAndShowElapsedTime([&](){ addCarsParallel(); }, "Add cars parallel");
 	for (size_t i = 0; i < 10000000; i++)
     {
 		updateStep();
@@ -93,49 +101,49 @@ void TrafficSimulation::dump() const
 }
 
 void TrafficSimulation::updateStep() {
-    addCars();
-	fillDummies();
-	updateObjects();
-	clearDummies();
-    deleteOffMapObjects();
+    executeAndShowElapsedTime([&](){ addCars(); }, "Add cars");
+    executeAndShowElapsedTime([&](){ fillDummies(); }, "Fill dummies");
+    executeAndShowElapsedTime([&](){ updateObjects(); }, "Update objects");
+    executeAndShowElapsedTime([&](){ clearDummies(); }, "Clear dummies");
+    executeAndShowElapsedTime([&](){ deleteOffMapObjects(); }, "Delete off map objects");
 }
 
 std::optional<std::pair<TrafficDummy, double>> TrafficSimulation::findNextObject(const TrafficObject& object) const
 {
-	const auto route = object.remainingRoute();
-	if (route.empty())
+    const auto route = object.remainingRoute();
+    if (route.empty())
 		return std::nullopt;
 
-	double distance = 0.;
-	for (size_t i = 0; i < route.size(); i++)
+    double distance = 0.;
+    for (size_t i = 0; i < route.size(); i++)
 	{
         for (const auto& connectionLoad : _dummies[route[i].from()]) {
-			const bool isSameWay = connectionLoad.segment().to() == route[i].to()
-                && connectionLoad.segment().wayId() == route[i].wayId();
+            if (connectionLoad.segment() != route[i])
+                continue;
 
-			if (!isSameWay)
-				continue;
+            if (i == 0) {
+                const auto nextObstacle = connectionLoad.findNext(object.progressOnCurrentSegment());
+                if (nextObstacle.has_value())
+                {
+                    const double progressDiff = nextObstacle->progress() - object.progressOnCurrentSegment();
+                    distance = progressDiff * object.currentSegment().distance();
+                    return std::make_pair(*nextObstacle, distance);
+                }
 
-			if (i == 0) {
-				const auto nextObstacle = connectionLoad.findNext(object.progressOnCurrentSegment());
-				if (nextObstacle.has_value())
-				{
-					const double progressDiff = nextObstacle->progress() - object.progressOnCurrentSegment();
-					distance = progressDiff * object.currentSegment().distance();
-					return std::make_pair(*nextObstacle, distance);
-				}
+                distance += (1. - object.progressOnCurrentSegment()) * object.currentSegment().distance();
+            }
+            else {
+                if (!connectionLoad.load().empty())
+                {
+                    distance += connectionLoad.load().front().progress() * connectionLoad.segment().distance();
+                    return std::make_pair(connectionLoad.load().front(), distance);
+                }
 
-				distance += (1. - object.progressOnCurrentSegment()) * object.currentSegment().distance();
-			}
-			else {
-				if (!connectionLoad.load().empty())
-				{
-					distance += connectionLoad.load().front().progress() * connectionLoad.segment().distance();
-					return std::make_pair(connectionLoad.load().front(), distance);
-				}
+                distance += connectionLoad.segment().distance();
 
-				distance += connectionLoad.segment().distance();
-			}
+                if (distance > 1000.)
+                    return std::nullopt;
+            }
 		}
 	}
 	return std::nullopt;
@@ -172,7 +180,7 @@ void TrafficSimulation::initDummies() {
         {
             const auto& loadSegment = connectionLoad.segment();
             const auto& objectSegment = object->currentSegment();
-            if (loadSegment.wayId() == objectSegment.wayId() && loadSegment.to() == objectSegment.to())
+            if (loadSegment == objectSegment)
                 connectionLoad.append(*object);
         }
     }
@@ -183,40 +191,40 @@ void TrafficSimulation::initDummies() {
 }
 
 void TrafficSimulation::fillDummies() {
-	for (const auto& object : _objects)
-	{
+    for (const auto& object : _objects)
+    {
         if (!object->isObstacle() || !object->isOnMap())
-			continue;
+            continue;
 
         for (auto& connectionLoad : _dummies[object->currentSegment().from()])
-		{
-			const auto& loadSegment = connectionLoad.segment();
+        {
+            const auto& loadSegment = connectionLoad.segment();
             const auto& objectSegment = object->currentSegment();
-			if (loadSegment.wayId() == objectSegment.wayId() && loadSegment.to() == objectSegment.to())
+            if (loadSegment == objectSegment)
                 connectionLoad.append(*object);
-		}
-	}
+        }
+    }
 
-	for (auto& nodeOutputLoads : _dummies)
-		for (auto& connectionLoad : nodeOutputLoads)
-			connectionLoad.sortTraffic();
+    for (auto& nodeOutputLoads : _dummies)
+        for (auto& connectionLoad : nodeOutputLoads)
+            connectionLoad.sortTraffic();
 }
 
 void TrafficSimulation::updateObjects() {
-	for (auto& object : _objects)
-	{
+    for (auto& object : _objects)
+    {
         const auto nextObjInfo = findNextObject(*object);
-		if (!nextObjInfo.has_value())
+        if (!nextObjInfo.has_value())
             object->update(1e7, 100.);
         else
             object->update(nextObjInfo->second, nextObjInfo->first.speed());
-	}
+    }
 }
 
 void TrafficSimulation::clearDummies() {
-	for (auto& nodeOutputLoads : _dummies)
-		for (auto& load : nodeOutputLoads)
-			load.reset();
+    for (auto& nodeOutputLoads : _dummies)
+        for (auto& load : nodeOutputLoads)
+            load.reset();
 }
 
 void TrafficSimulation::addTrafficSignals() {
@@ -248,27 +256,65 @@ void TrafficSimulation::addTrafficSignals() {
 }
 
 void TrafficSimulation::addCars() {
+    if (_objects.size() + 30 >= Settings::instance().simulationPoolSize())
+        return;
+
     while (_objects.size() < Settings::instance().simulationPoolSize())
     {
-        const id_t from = _randomNodeGenerator.rand();
-        const id_t to = _randomNodeGenerator.rand();
+        const id_t from = _randomNodeGenerator[0].rand();
+        const id_t to = _randomNodeGenerator[0].rand();
         const auto path = _pathFinder.shortestPathBetweenCrossroads(from, to);
         if (path.empty())
             continue;
 
         _objects.push_back(std::make_unique<TrafficCar>(path));
+        //std::cout << _objects.size() << std::endl;
     }
 }
 
+void TrafficSimulation::addCarsParallel() {
+    const size_t numCarsToAdd = _objects.size() < Settings::instance().simulationPoolSize() ?
+                                    Settings::instance().simulationPoolSize() - _objects.size() :
+                                    0;
+    const size_t numHardwareThreads = std::min((size_t)8, (size_t)std::thread::hardware_concurrency());
+    const size_t threadPoolSize = numHardwareThreads > 2 ? numHardwareThreads - 2 : 1;
+    const size_t numCarsPerThread = numCarsToAdd / threadPoolSize;
+    QMutex mutex;
+
+    const auto workerFunc = [&](const size_t threadNum) {
+        std::vector<std::unique_ptr<TrafficObject>> cars;
+        cars.reserve(numCarsPerThread);
+        for (size_t j = 0; j < numCarsPerThread; j++) {
+            const id_t from = _randomNodeGenerator[threadNum].rand();
+            const id_t to = _randomNodeGenerator[threadNum].rand();
+            const auto path = _pathFinder.shortestPathBetweenCrossroads(from, to);
+            if (path.empty())
+                continue;
+
+            cars.push_back(std::make_unique<TrafficCar>(path));
+        }
+        QMutexLocker locker(&mutex);
+        for (auto& car : cars)
+            _objects.emplace_back(std::move(car));
+    };
+
+    std::vector<std::thread> threads;
+    for (size_t i = 0; i < threadPoolSize; i++)
+        threads.push_back(std::thread(std::bind(workerFunc, i)));
+
+    for (auto& t : threads)
+        t.join();
+}
+
 void TrafficSimulation::deleteOffMapObjects() {
-	std::vector<size_t> idsToDelete;
+    std::vector<size_t> idsToDelete;
 
-	for (size_t i = 0; i < _objects.size(); i++)
+    for (size_t i = 0; i < _objects.size(); i++)
         if (!_objects[i]->isOnMap())
-			idsToDelete.push_back(i);
+            idsToDelete.push_back(i);
 
-	std::reverse(idsToDelete.begin(), idsToDelete.end());
+    std::reverse(idsToDelete.begin(), idsToDelete.end());
 
-	for (size_t idToDelete : idsToDelete)
-		_objects.erase(_objects.begin() + idToDelete, _objects.begin() + idToDelete + 1);
+    for (size_t idToDelete : idsToDelete)
+        _objects.erase(_objects.begin() + idToDelete, _objects.begin() + idToDelete + 1);
 }

@@ -10,7 +10,7 @@ GraphRepresentation::GraphRepresentation(std::function<bool(const Way&)> filter)
 {
 	const auto& nodes = MapData::instance().nodes();
 	_connections = std::vector<Connections>(nodes.size());
-	_connectionRef = std::vector<std::set<id_t>>(nodes.size());
+    _connectionRef = std::vector<std::set<id_t>>(nodes.size());
 
 	for (const auto& way : MapData::instance().ways()) {
         if (!filter(way))
@@ -195,33 +195,29 @@ void GraphRepresentation::unfoldNodes(id_t i) {
 }
 
 std::vector<Connection> GraphRepresentation::shortestPathImpl(id_t from, id_t to) const {
-	// init algorithm containers
-	auto routeLengths = std::vector<double>(MapData::instance().nodes().size(), std::numeric_limits<double>().max());
-	auto prevNodes = std::vector<std::pair<id_t, const Way*>>(MapData::instance().nodes().size(), { 0, nullptr });
-	routeLengths[from] = 0.;
-	prevNodes[from] = { from, nullptr };
-	auto currentNodes = std::set<id_t>{ from };
+    // init algorithm containers
+    auto routeLengths = std::vector<double>(MapData::instance().nodes().size(), std::numeric_limits<double>().max());
+    auto prevNodes = std::vector<std::pair<id_t, id_t>>(MapData::instance().nodes().size(), { 0, 0 });
+    routeLengths[from] = 0.;
+    prevNodes[from] = { from, 0 };
+    auto currentNodes = std::set<id_t>{ from };
 
 	// Dijkstra
 	while (!currentNodes.empty()) {
-		auto nextNodes = std::set<id_t>{};
+        auto nextNodes = std::set<id_t>{};
 		for (const id_t node : currentNodes) {
 			for (const auto& connection : _connections[node].output) {
 				const double maxSpeed = connection.way().speedLimit();
-				if (routeLengths[connection.to()] > routeLengths[connection.from()] + connection.distance() / maxSpeed) {
-					routeLengths[connection.to()] = routeLengths[connection.from()] + connection.distance() / maxSpeed;
-					prevNodes[connection.to()] = { connection.from(), &connection.way() };
-					if (routeLengths[connection.to()] < routeLengths[to])
-					{
-						nextNodes.insert(connection.to());
-					}
+                if (routeLengths[connection.to()] > routeLengths[connection.from()] + connection.distance() / maxSpeed) {
+                    routeLengths[connection.to()] = routeLengths[connection.from()] + connection.distance() / maxSpeed;
+                    prevNodes[connection.to()] = { connection.from(), connection.way().id() };
+                    if (routeLengths[connection.to()] < routeLengths[to])
+                        nextNodes.insert(connection.to());
 				}
 			}
-		}
-        if (currentNodes == nextNodes)
-            return {};
+        }
 
-		currentNodes = nextNodes;
+        currentNodes = nextNodes;
 	}
 
     if (routeLengths[to] == std::numeric_limits<double>().max())
@@ -233,13 +229,13 @@ std::vector<Connection> GraphRepresentation::shortestPathImpl(id_t from, id_t to
 	while (currentNode != from)
 	{
 		for (const auto& connection : _connections[currentNode].input) {
-			if (connection.from() == prevNodes[currentNode].first && &connection.way() == prevNodes[currentNode].second) {
-				const auto connectionsToAppend = connection.explode();
-				route.insert(route.begin(), connectionsToAppend.begin(), connectionsToAppend.end());
+            if (connection.from() == prevNodes[currentNode].first && connection.way().id() == prevNodes[currentNode].second) {
+                const auto connectionsToAppend = connection.explode();
+                route.insert(route.begin(), connectionsToAppend.begin(), connectionsToAppend.end());
 				break;
 			}
 		}
-		currentNode = prevNodes[currentNode].first;
+        currentNode = prevNodes[currentNode].first;
     }
 
 	return route;

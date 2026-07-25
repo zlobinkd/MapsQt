@@ -12,7 +12,7 @@ ReturnT executeAndShowElapsedTime(const F& func, Args... args) {
 	ReturnT res = func(args...);
 	auto end = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-	std::cout << duration << std::endl;
+    std::cout << duration.count() / 1000 << std::endl;
 	return res;
 }
 
@@ -23,5 +23,15 @@ void executeAndShowElapsedTime(const F& func) {
 	func();
 	auto end = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-	std::cout << duration << std::endl;
+    std::cout << duration.count() / 1000 << std::endl;
+}
+
+// runs the function <func> and prints the elapsed time to the command window
+template<class F>
+void executeAndShowElapsedTime(const F& func, const std::string& text) {
+    auto begin = std::chrono::high_resolution_clock::now();
+    func();
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
+    std::cout << text << ": " << duration.count() / 1000 << std::endl;
 }

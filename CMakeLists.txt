@@ -33,6 +33,7 @@ qt_add_executable(appMapsQt
     trafficSignal.cpp trafficSignal.h
     trafficSignalSynchro.cpp trafficSignalSynchro.h
     trafficSimulation.cpp trafficSimulation.h
+    trafficSimulationAlt.cpp trafficSimulationAlt.h
     way.cpp way.h
 )
 

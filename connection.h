@@ -35,6 +35,9 @@ public:
 	// distance from <from> to <to>, along the <path>
 	inline double distance() const { return _distance; }
 
+    friend bool operator==(const Connection& lhs, const Connection& rhs);
+    friend bool operator!=(const Connection& lhs, const Connection& rhs);
+
 private:
 	Connection(const Connection& left, const Connection& right);
 

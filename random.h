@@ -6,7 +6,7 @@
 class Random {
 public:
     Random() = delete;
-    Random(const std::vector<id_t>& data);
+    Random(const std::vector<id_t>& data, size_t seed);
 
     id_t rand() const;
 
