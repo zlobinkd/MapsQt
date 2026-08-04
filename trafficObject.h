@@ -3,6 +3,7 @@
 #include "core.h"
 #include "connection.h"
 #include "bounds.h"
+#include "span.h"
 
 #include <QPen>
 
@@ -18,7 +19,7 @@ public:
 	// relative position on the current Connection between <from> and <to>, value from 0. to 1.
 	virtual double progressOnCurrentSegment() const = 0;
 	virtual Connection currentSegment() const = 0;
-	virtual const std::vector<Connection> remainingRoute() const;
+    virtual Span<const Connection> remainingRoute() const;
 
 	// is being simulated?
 	virtual bool isOnMap() const;

@@ -76,7 +76,7 @@ void TrafficSimulation::run() {
 	for (size_t i = 0; i < 10000000; i++)
     {
 		updateStep();
-        dump();
+        executeAndShowElapsedTime([&](){ dump(); }, "Paint cars");
     }
 }
 
@@ -113,14 +113,14 @@ void TrafficSimulation::updateStep() {
 std::optional<std::pair<TrafficDummy, double>> TrafficSimulation::findNextObject(const TrafficObject& object) const
 {
     const auto route = object.remainingRoute();
-    if (route.empty())
-		return std::nullopt;
 
     double distance = 0.;
-    for (size_t i = 0; i < route.size(); i++)
+    // outer loop counter
+    size_t i = 0;
+    for (const auto& connection : route)
 	{
-        for (const auto& connectionLoad : _dummies[route[i].from()]) {
-            if (connectionLoad.segment() != route[i])
+        for (const auto& connectionLoad : _dummies[connection.from()]) {
+            if (connectionLoad.segment() != connection)
                 continue;
 
             if (i == 0) {
@@ -147,6 +147,7 @@ std::optional<std::pair<TrafficDummy, double>> TrafficSimulation::findNextObject
                     return std::nullopt;
             }
 		}
+        i++;
 	}
 	return std::nullopt;
 }

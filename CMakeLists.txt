@@ -46,6 +46,7 @@ qt_add_qml_module(appMapsQt
         SOURCES mainWindow.cpp
         SOURCES mapGraphicsItem.h
         SOURCES mapGraphicsItem.cpp
+        SOURCES span.h
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

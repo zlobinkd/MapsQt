@@ -1,7 +1,7 @@
 #include "trafficObject.h"
 
-const std::vector<Connection> TrafficObject::remainingRoute() const {
-	return {};
+Span<const Connection> TrafficObject::remainingRoute() const {
+    return Span<const Connection>{ nullptr, 0 };
 }
 
 bool TrafficObject::isOnMap() const {

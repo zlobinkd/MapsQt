@@ -124,14 +124,14 @@ std::optional<std::pair<const std::shared_ptr<const TrafficObject>, double>> Tra
 {
     const auto& object = *objectIt;
     const auto route = object->remainingRoute();
-    if (route.empty())
-		return std::nullopt;
 
     double distance = 0.;
-    for (size_t i = 0; i < route.size(); i++)
+    // loop counter
+    size_t i = 0;
+    for (const auto& connection : route)
 	{
-        for (const auto& connectionLoad : _objects[route[i].from()]) {
-            if (connectionLoad.segment() != route[i])
+        for (const auto& connectionLoad : _objects[connection.from()]) {
+            if (connectionLoad.segment() != connection)
                 continue;
 
             if (i == 0) {
@@ -167,6 +167,7 @@ std::optional<std::pair<const std::shared_ptr<const TrafficObject>, double>> Tra
                     return std::nullopt;
             }
 		}
+        i++;
 	}
 	return std::nullopt;
 }

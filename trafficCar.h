@@ -18,7 +18,7 @@ public:
 	double progressOnCurrentSegment() const override;
 	// current simple connection (no internal path)
 	Connection currentSegment() const override;
-	const std::vector<Connection> remainingRoute() const override;
+    Span<const Connection> remainingRoute() const override;
 	// if the car reached its destination, it is no longer on the map
 	bool isOnMap() const override;
 

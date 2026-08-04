@@ -9,11 +9,11 @@
 
 TrafficCar::TrafficCar(const std::vector<Connection>& route) : _route(route) {}
 
-static double pow2(const double x) {
+static inline double pow2(const double x) {
     return x * x;
 }
 
-static double pow4(const double x) {
+static inline double pow4(const double x) {
     return pow2(x) * pow2(x);
 }
 
@@ -75,8 +75,8 @@ Connection TrafficCar::currentSegment() const {
 	return _currentConnectionId < _route.size() ? _route[_currentConnectionId] : _route.back();
 }
 
-const std::vector<Connection> TrafficCar::remainingRoute() const {
-	return std::vector<Connection>(_route.begin() + _currentConnectionId, _route.end());
+Span<const Connection> TrafficCar::remainingRoute() const {
+    return Span<const Connection>(&_route.front() + _currentConnectionId, _route.size() - _currentConnectionId);
 }
 
 bool TrafficCar::isOnMap() const {
