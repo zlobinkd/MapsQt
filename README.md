@@ -1,7 +1,10 @@
 # Installation
 1. Install Qt Creator.
 2. Press "Open Project", select the CMakeLists.txt file, choose the desired build configurations and click OK (or whatever that button says).
-3. Build and start the project.
+3. Build the project.
+4. Copy the `MapsQt.ini-example` file and rename it to "`MapsQt.ini`". You can change its settings how you like.
+5. Be sure to have some OSM data preprocessed with [maps](https://github.com/zlobinkd/maps) - you can set the path it in `MapsQt.ini`
+6. Start the program.
 
 ## Prerequisites
 - Qt 6.10.2
