@@ -1,0 +1,27 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "Debug",
+      "hidden": false,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_FLAGS": "$penv{CXXFLAGS} -DQT_QML_DEBUG",
+        "CMAKE_PREFIX_PATH": "$env{QT6_ROOT}"
+      }
+    },
+    {
+      "name": "Release",
+      "hidden": false,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_FLAGS": "$penv{CXXFLAGS} -DQT_QML_RELEASE",
+        "CMAKE_PREFIX_PATH": "$env{QT6_ROOT}"
+      }
+    }
+  ]
+}

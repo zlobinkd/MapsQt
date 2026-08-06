@@ -26,7 +26,9 @@ public:
 	// referenced nodes
 	const std::vector<id_t>& refs() const;
 
-	double speedLimit() const;
+	inline double speedLimit() const { return _speedLimit; }
+
+	double getSpeedLimit() const;
 
 private:
 	id_t _id;
@@ -34,6 +36,8 @@ private:
 	std::vector<id_t> _nodeIds;
 	// tags: street name, road type, etc.
 	Tags _tags;
+
+	double _speedLimit = 1.;
 
 	friend class xmlWriter;
 };

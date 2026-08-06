@@ -46,11 +46,14 @@ void TrafficCar::update(const double distanceToNextObject, const double nextObje
 
     double distanceToSegmentEnd = (1. - _progressOnCurrentSegment) * currentSegment().distance();
     size_t index = _currentConnectionId;
-    while (index < _route.size() && distanceToSegmentEnd <= positionAdvance)
+    while (index + 1 < _route.size() && distanceToSegmentEnd <= positionAdvance)
     {
         index++;
         distanceToSegmentEnd += _route[index].distance();
     }
+
+    if (distanceToSegmentEnd <= positionAdvance)
+        index++;
 
     if (index < _route.size()) {
         const double localPosition = positionAdvance - distanceToSegmentEnd + _route[index].distance();

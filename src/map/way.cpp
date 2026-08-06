@@ -4,8 +4,10 @@
 #include <ranges>
 
 Way::Way(id_t id, const std::vector<id_t>& nodeIds, const Tags& tags)
-	: _id(id), _nodeIds(nodeIds), _tags(tags) 
-{}
+	: _id(id), _nodeIds(nodeIds), _tags(tags)
+{
+	_speedLimit = getSpeedLimit();
+}
 
 id_t Way::id() const {
 	return _id;
@@ -35,7 +37,7 @@ const std::vector<id_t>& Way::refs() const {
 	return _nodeIds;
 }
 
-double Way::speedLimit() const {
+double Way::getSpeedLimit() const {
 	if (!hasTag("maxspeed"))
 	{
 		if (tagValue("highway") == "residential")

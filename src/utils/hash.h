@@ -4,5 +4,5 @@
 #include "QColor"
 
 inline uint qHash(const QColor &key, uint seed = 0) {
-    return qHash(key.rgba(), seed);
+    return key.rgba() ^ seed;
 }

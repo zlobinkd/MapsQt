@@ -9,7 +9,7 @@ static std::string trim(std::string str) {
 }
 
 Settings::Settings() {
-    std::ifstream file("..\\..\\MapsQt.ini");
+    std::ifstream file("..\\..\\..\\MapsQt.ini");
     if (!file.is_open())
         std::cerr << "Could not open your dumbass ini file!" << std::endl;;
 

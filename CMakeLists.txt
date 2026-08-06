@@ -111,6 +111,30 @@ target_link_libraries(appMapsQt
     PRIVATE Qt6::Quick Qt6::Core Qt6::Widgets
 )
 
+if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_custom_command(TARGET appMapsQt POST_BUILD
+        COMMAND "${CMAKE_PREFIX_PATH}/bin/windeployqt.exe"
+            "$<TARGET_FILE:appMapsQt>"
+            --no-compiler-runtime
+            --no-system-d3d-compiler
+            --no-opengl-sw
+            --no-translations
+            --verbose 0
+        COMMENT "Deploying Qt libraries..."
+        WORKING_DIRECTORY "$<TARGET_FILE_DIR:appMapsQt>"
+    )
+endif()
+
+if(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_custom_command(TARGET appMapsQt POST_BUILD
+        COMMAND "${CMAKE_PREFIX_PATH}/bin/windeployqt.exe"
+            "$<TARGET_FILE:appMapsQt>"
+            --no-compiler-runtime
+        COMMENT "Deploying Qt debug libraries..."
+        WORKING_DIRECTORY "$<TARGET_FILE_DIR:appMapsQt>"
+    )
+endif()
+
 include(GNUInstallDirs)
 install(TARGETS appMapsQt
     BUNDLE DESTINATION .
