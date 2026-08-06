@@ -3,7 +3,9 @@
 2. Install Qt with MSVC compiler (if it doesn't show up under your Qt version, set "show archive" in the filter above).
 3. Define QT6_ROOT environment variable as a path to your \Qt\6.?.?\msvc2022_64 (usually C:\Qt\...)
 4. Open the Visual Studio, click "Open folder" and open your repo folder.
-5. Select the target configuration and run the program.
+5. Copy the `MapsQt.ini-example` file and rename it to "`MapsQt.ini`". You can change its settings how you like.
+6. Be sure to have some OSM data preprocessed with [maps](https://github.com/zlobinkd/maps) - you can set the path to it in `MapsQt.ini`
+7. Select the target configuration and run the program.
 
 ## Prerequisites
 - Qt 6.10 or newer
