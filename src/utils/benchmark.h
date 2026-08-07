@@ -3,6 +3,7 @@
 #include <functional>
 #include <iostream>
 #include <chrono>
+#include <QDebug>
 
 // runs the function <func>, returns its output and prints the elapsed time to the command window
 // args: arguments for <func>
@@ -12,7 +13,7 @@ ReturnT executeAndShowElapsedTime(const F& func, Args... args) {
 	ReturnT res = func(args...);
 	auto end = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-    std::cout << duration.count() / 1000 << std::endl;
+	qInfo() << duration.count() / 1000;
 	return res;
 }
 
@@ -23,7 +24,7 @@ void executeAndShowElapsedTime(const F& func) {
 	func();
 	auto end = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-    std::cout << duration.count() / 1000 << std::endl;
+	qInfo() << duration.count() / 1000;
 }
 
 // runs the function <func> and prints the elapsed time to the command window
@@ -33,5 +34,5 @@ void executeAndShowElapsedTime(const F& func, const std::string& text) {
     func();
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-    std::cout << text << ": " << duration.count() / 1000 << std::endl;
+    qInfo() << text << ": " << duration.count() / 1000;
 }

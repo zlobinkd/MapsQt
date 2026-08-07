@@ -29,6 +29,7 @@ size_t ScaleAreaInformation::areaIndex() const {
 
 std::vector<ScaleAreaInformation> ScaleAreaInformation::areaInfos(const double x1, const double y1, const double x2, const double y2) {
 	std::vector<ScaleAreaInformation> res;
+	res.reserve(4 * SCALES_NUM);
 	for (size_t scale = 0; scale < SCALES_NUM; scale++) {
 		const size_t numAreas = 1 << scale;
 		const size_t i1 = std::min(numAreas - 1, size_t(std::max(0., x1 * (numAreas + 1) - 1.)));
@@ -37,7 +38,7 @@ std::vector<ScaleAreaInformation> ScaleAreaInformation::areaInfos(const double x
 		const size_t j2 = std::min(numAreas - 1, size_t(std::max(0., y2 * (numAreas + 1))));
 		for (size_t i = i1; i <= i2; i++)
 			for (size_t j = j1; j <= j2; j++)
-				res.push_back({ scale, i, j });
+				res.emplace_back(scale, i, j);
 	}
 	return res;
 }

@@ -19,7 +19,7 @@
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_CXX_FLAGS": "$penv{CXXFLAGS} -DQT_QML_RELEASE",
+        "CMAKE_CXX_FLAGS": "$penv{CXXFLAGS}",
         "CMAKE_PREFIX_PATH": "$env{QT6_ROOT}"
       }
     }

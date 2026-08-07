@@ -17,7 +17,7 @@ public:
 	// on the current simple connection, shows how close the car is to the segment endpoint (value between 0. and 1.)
 	double progressOnCurrentSegment() const override;
 	// current simple connection (no internal path)
-	Connection currentSegment() const override;
+	const Connection& currentSegment() const override;
     Span<const Connection> remainingRoute() const override;
 	// if the car reached its destination, it is no longer on the map
 	bool isOnMap() const override;

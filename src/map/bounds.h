@@ -13,6 +13,8 @@ struct ScaleAreaInformation {
 	// create-function, so that no implicit conversion makes troubles
 	static ScaleAreaInformation create(double d_scale, double d_x, double d_y);
 
+	ScaleAreaInformation(size_t scale_, size_t x_, size_t y_) : scale(scale_), x(x_), y(y_) {}
+
 	size_t scale;
 	size_t x;
 	size_t y;

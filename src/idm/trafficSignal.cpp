@@ -19,7 +19,7 @@ double TrafficSignal::speed() const {
 double TrafficSignal::progressOnCurrentSegment() const {
 	return 1.;
 }
-Connection TrafficSignal::currentSegment() const {
+const Connection& TrafficSignal::currentSegment() const {
 	return _segment;
 }
 

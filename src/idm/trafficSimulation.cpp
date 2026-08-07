@@ -54,7 +54,7 @@ void ConnectionLoad::sortTraffic() {
 
 std::optional<TrafficDummy> ConnectionLoad::findNext(const double progress) const {
 	const auto& it = std::find_if(_traffic.begin(), _traffic.end(),
-        [&progress](const TrafficDummy& d) {return d.progress() > progress; });
+        [&progress](const TrafficDummy& d) { return d.progress() > progress; });
 	if (it != _traffic.end())
 		return *it;
     return std::nullopt;
@@ -72,7 +72,7 @@ TrafficSimulation::TrafficSimulation(DynamicMapGraphicsItem* item) : _pathFinder
 void TrafficSimulation::run() {
     addTrafficSignals();
     initDummies();
-    executeAndShowElapsedTime([&](){ addCarsParallel(); }, "Add cars parallel");
+    executeAndShowElapsedTime([&]() { addCarsParallel(); }, "Add cars parallel");
 	for (size_t i = 0; i < 10000000; i++)
     {
 		updateStep();
@@ -279,7 +279,7 @@ void TrafficSimulation::addCarsParallel() {
     const size_t numCarsToAdd = _objects.size() < Settings::instance().simulationPoolSize() ?
                                     Settings::instance().simulationPoolSize() - _objects.size() :
                                     0;
-    const size_t numHardwareThreads = std::min((size_t)8, (size_t)std::thread::hardware_concurrency());
+    const size_t numHardwareThreads = std::min((size_t)12, (size_t)std::thread::hardware_concurrency());
     const size_t threadPoolSize = numHardwareThreads > 2 ? numHardwareThreads - 2 : 1;
     const size_t numCarsPerThread = numCarsToAdd / threadPoolSize;
     QMutex mutex;
