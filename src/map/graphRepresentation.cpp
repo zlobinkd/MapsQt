@@ -6,6 +6,7 @@
 #include <iostream>
 #include <limits>
 #include <queue>
+#include <QDebug>
 
 GraphRepresentation::GraphRepresentation(std::function<bool(const Way&)> filter)
 {
@@ -95,7 +96,7 @@ std::set<id_t> GraphRepresentation::mergeNode(id_t i) {
 		auto newConnection = Connection::create(_connections[i].input[j], _connections[i].output[j]);
 		if (!newConnection.has_value())
 		{
-			std::cout << "Could not merge two connections!" << std::endl;
+			qInfo() << "Could not merge two connections!";
 			return {};
 		}
 		_connections[from].output.push_back(*newConnection);
