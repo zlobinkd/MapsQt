@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <iostream>
 #include <limits>
-#include <unordered_set>
+#include <queue>
 
 GraphRepresentation::GraphRepresentation(std::function<bool(const Way&)> filter)
 {
@@ -89,6 +89,9 @@ std::set<id_t> GraphRepresentation::mergeNode(id_t i) {
 				_connections[to].input.erase(_connections[to].input.begin() + k);
 
 		// add new connections.
+		if (_connections[i].input.size() <= j || _connections[i].output.size() <= j)
+			return {};
+
 		auto newConnection = Connection::create(_connections[i].input[j], _connections[i].output[j]);
 		if (!newConnection.has_value())
 		{
@@ -201,25 +204,23 @@ std::vector<Connection> GraphRepresentation::shortestPathImpl(id_t from, id_t to
     auto prevNodes = std::vector<std::pair<id_t, id_t>>(MapData::instance().nodes().size(), { 0, 0 });
     routeLengths[from] = 0.;
     prevNodes[from] = { from, 0 };
-    auto currentNodes = std::unordered_set<id_t>{ from };
+	const auto cmp = [](const std::pair<id_t, double>& lhs, const std::pair<id_t, double>& rhs) { return lhs.second > rhs.second; };
+	auto currentNodes = std::priority_queue<std::pair<id_t, double>, std::vector<std::pair<id_t, double>>, decltype(cmp)>{ cmp };
+	currentNodes.push({ from, 0. });
 
 	// Dijkstra
-	auto nextNodes = std::unordered_set<id_t>{};
 	while (!currentNodes.empty()) {
-        auto nextNodes = std::unordered_set<id_t>{};
-		for (const id_t node : currentNodes) {
-			for (const auto& connection : _connections[node].output) {
-				const double maxSpeed = connection.way().speedLimit();
-                if (routeLengths[connection.to()] > routeLengths[connection.from()] + connection.distance() / maxSpeed) {
-                    routeLengths[connection.to()] = routeLengths[connection.from()] + connection.distance() / maxSpeed;
-                    prevNodes[connection.to()] = { connection.from(), connection.way().id() };
-                    if (routeLengths[connection.to()] < routeLengths[to])
-                        nextNodes.insert(connection.to());
-				}
+		const auto [node, dst] = currentNodes.top();
+		currentNodes.pop();
+		for (const auto& connection : _connections[node].output) {
+			const double maxSpeed = connection.way().speedLimit();
+			if (routeLengths[connection.to()] > routeLengths[connection.from()] + connection.distance() / maxSpeed) {
+				routeLengths[connection.to()] = routeLengths[connection.from()] + connection.distance() / maxSpeed;
+				prevNodes[connection.to()] = { connection.from(), connection.way().id() };
+				if (routeLengths[connection.to()] < routeLengths[to])
+					currentNodes.push({ connection.to(), routeLengths[connection.to()] });
 			}
-        }
-
-        currentNodes = nextNodes;
+		}
 	}
 
     if (routeLengths[to] == std::numeric_limits<double>().max())
