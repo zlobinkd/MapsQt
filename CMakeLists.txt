@@ -71,6 +71,7 @@ set(UTILS_SOURCES
     src/utils/settings.cpp
     src/utils/settings.h
     src/utils/span.h
+    src/utils/threading.h
 )
 
 source_group("gui" FILES ${GUI_SOURCES})
