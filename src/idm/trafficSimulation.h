@@ -11,11 +11,13 @@
 
 #include <vector>
 #include <memory>
+#include <QMutex>
 
 // class that represents which objects are located on a certain segment
 class ConnectionLoad {
 public:
 	ConnectionLoad(const Connection&);
+    ConnectionLoad(const ConnectionLoad&);
 
     void append(const TrafficDummy&);
     void sortTraffic();
@@ -28,6 +30,7 @@ private:
 	Connection _segment;
 	// objects that are on _segment
     std::vector<TrafficDummy> _traffic;
+    QMutex _appendMutex;
 };
 
 // class for traffic simulation
@@ -39,6 +42,7 @@ public:
 	void run();
 	// write result to a file
 	void dump() const;
+    void dumpParallel() const;
 	
 private:
 	// 1 timestamp of the simulation
@@ -49,8 +53,12 @@ private:
     void initDummies();
     // fill dummy container
     void fillDummies();
+    void fillDummiesParallel();
+    void addObjectToDummies(const TrafficObject&);
 	// update traffic objects
     void updateObjects();
+    void updateObjectsParallel();
+    void updateObject(TrafficObject&) const;
 
     void clearDummies();
     // adds all traffic signals to the simulation

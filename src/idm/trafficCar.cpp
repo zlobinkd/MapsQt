@@ -49,7 +49,7 @@ void TrafficCar::update(const double distanceToNextObject, const double nextObje
     while (index < _route.size() && distanceToSegmentEnd <= positionAdvance)
     {
         index++;
-        distanceToSegmentEnd += _route[index].distance();
+        distanceToSegmentEnd += index < _route.size() ?  _route[index].distance() : 0.;
     }
 
     if (index < _route.size()) {
@@ -71,7 +71,7 @@ double TrafficCar::progressOnCurrentSegment() const {
 	return _progressOnCurrentSegment;
 }
 
-Connection TrafficCar::currentSegment() const {
+const Connection& TrafficCar::currentSegment() const {
 	return _currentConnectionId < _route.size() ? _route[_currentConnectionId] : _route.back();
 }
 

@@ -18,7 +18,7 @@ public:
 	};
 
 	Relation() = delete;
-	Relation(id_t id, const std::array<size_t, 2>& wayIds, id_t nodeId, RestrictionType type);
+	Relation(id_t id, const std::array<id_t, 2>& wayIds, id_t nodeId, RestrictionType type);
 
 	// from, via, to
 	std::tuple<id_t, id_t, id_t> refs() const;

@@ -1,7 +1,7 @@
-pathToMap=..\\..\\data\\mapAachen3
-pathToTrafficSignalClustering=..\\..\\data\\streetSignalsAachen_clustered.csv
+pathToMap=..\\..\\..\\data\\mapMoscow3
+pathToTrafficSignalClustering=..\\..\\..\\data\\streetSignalsMoscow_clustered.csv
 imageSize=25000
-simulationPoolSize=3000
+simulationPoolSize=150000
 sampleTime=0.1
 trafficLightSinglePhaseDuration=60
 minDesiredGap=7

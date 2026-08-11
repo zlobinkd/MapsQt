@@ -10,8 +10,8 @@ public:
 	TrafficDummy(const TrafficDummy&) = default;
 	TrafficDummy(const TrafficObject&);
 
-	double speed() const { return _speed; }
-	double progress() const { return _progress; }
+	inline double speed() const { return _speed; }
+	inline double progress() const { return _progress; }
 private:
 	double _speed;
 

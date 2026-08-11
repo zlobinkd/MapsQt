@@ -15,7 +15,7 @@ public:
 	double speed() const override;
 	// 1. per definition (at the end of its Connection)
 	double progressOnCurrentSegment() const override;
-	Connection currentSegment() const override;
+	const Connection& currentSegment() const override;
 
 	// is red signal?
 	virtual bool isObstacle() const override;

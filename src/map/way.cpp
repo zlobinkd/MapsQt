@@ -4,8 +4,10 @@
 #include <ranges>
 
 Way::Way(id_t id, const std::vector<id_t>& nodeIds, const Tags& tags)
-	: _id(id), _nodeIds(nodeIds), _tags(tags) 
-{}
+	: _id(id), _nodeIds(nodeIds), _tags(tags)
+{
+	_speedLimit = getSpeedLimit();
+}
 
 id_t Way::id() const {
 	return _id;
@@ -35,7 +37,7 @@ const std::vector<id_t>& Way::refs() const {
 	return _nodeIds;
 }
 
-double Way::speedLimit() const {
+double Way::getSpeedLimit() const {
 	if (!hasTag("maxspeed"))
 	{
 		if (tagValue("highway") == "residential")
@@ -44,11 +46,21 @@ double Way::speedLimit() const {
 			return 60. / 3.6;
 		if (tagValue("highway") == "primary_link")
 			return 60. / 3.6;
+		if (tagValue("highway") == "motorway_link")
+			return 60. / 3.6;
+		if (tagValue("highway") == "motorway")
+			return 70. / 3.6;
+		if (tagValue("highway") == "trunk_link")
+			return 60. / 3.6;
+		if (tagValue("highway") == "trunk")
+			return 70. / 3.6;
 		if (tagValue("highway") == "secondary")
 			return 60. / 3.6;
 		if (tagValue("highway") == "primary")
 			return 70. / 3.6;
 		if (tagValue("highway") == "tertiary")
+			return 30. / 3.6;
+		if (tagValue("highway") == "tertiary_link")
 			return 30. / 3.6;
 		return 5. / 3.6;
 	}
@@ -71,6 +83,9 @@ double Way::speedLimit() const {
 
 	if (s == "RU:living_street")
 		return 15. / 3.6;
+
+	if (s.find("mph") != std::string::npos)
+		return std::stod(s) * 1.609 / 3.6;
 
 	return std::stod(s) / 3.6;
 }

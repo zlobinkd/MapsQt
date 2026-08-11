@@ -6,6 +6,7 @@
 #include "src/map/highwayClassification.h"
 #include "src/utils/settings.h"
 #include "src/utils/benchmark.h"
+#include "src/utils/threading.h"
 
 #include <algorithm>
 #include <iostream>
@@ -43,7 +44,10 @@ static std::vector<id_t> crossroadsNodes() {
 
 ConnectionLoad::ConnectionLoad(const Connection& connection) : _segment(connection) {}
 
+ConnectionLoad::ConnectionLoad(const ConnectionLoad& other) : _segment(other._segment), _traffic(other._traffic) {}
+
 void ConnectionLoad::append(const TrafficDummy& dummy) {
+    QMutexLocker locker(&_appendMutex);
     _traffic.emplace_back(dummy);
 }
 
@@ -54,7 +58,7 @@ void ConnectionLoad::sortTraffic() {
 
 std::optional<TrafficDummy> ConnectionLoad::findNext(const double progress) const {
 	const auto& it = std::find_if(_traffic.begin(), _traffic.end(),
-        [&progress](const TrafficDummy& d) {return d.progress() > progress; });
+        [&progress](const TrafficDummy& d) { return d.progress() > progress; });
 	if (it != _traffic.end())
 		return *it;
     return std::nullopt;
@@ -72,11 +76,11 @@ TrafficSimulation::TrafficSimulation(DynamicMapGraphicsItem* item) : _pathFinder
 void TrafficSimulation::run() {
     addTrafficSignals();
     initDummies();
-    executeAndShowElapsedTime([&](){ addCarsParallel(); }, "Add cars parallel");
+    executeAndShowElapsedTime([&]() { addCarsParallel(); }, "Add cars parallel");
 	for (size_t i = 0; i < 10000000; i++)
     {
 		updateStep();
-        executeAndShowElapsedTime([&](){ dump(); }, "Paint cars");
+        executeAndShowElapsedTime([&](){ dumpParallel(); }, "Paint cars parallel");
     }
 }
 
@@ -101,10 +105,55 @@ void TrafficSimulation::dump() const
     _graphicsItem->updateData(std::move(pts));
 }
 
+void TrafficSimulation::dumpParallel() const {
+    const size_t numHardwareThreads = std::min((size_t)12, (size_t)std::thread::hardware_concurrency());
+    const size_t threadPoolSize = numHardwareThreads > 2 ? numHardwareThreads - 2 : 1;
+
+    const size_t numObjectsPerThread = _objects.size() / threadPoolSize;
+
+    QHash<QPair<QColor, int>, QVector<QPointF>> pts;
+    const auto scaleAndCoords = _graphicsItem->bounds().scaleAndCoords();
+    QMutex mutex;
+
+    const auto workerFunc = [&](const size_t threadId) {
+        const size_t startObjectIndex = numObjectsPerThread * threadId;
+        const size_t endIndex = threadId == threadPoolSize - 1 ? _objects.size() : numObjectsPerThread * (threadId + 1);
+        QVector<QPair<QPair<QColor, int>, QPointF>> localPts;
+        for (size_t i = startObjectIndex; i < endIndex; i++)
+        {
+            auto& object = _objects[i];
+            
+            const auto scalesAndCoords = object->scaleAreaInfo();
+            const bool isPtVisible = std::find_if(scalesAndCoords.begin(), scalesAndCoords.end(),
+                [&scaleAndCoords](const auto& el) { return el == scaleAndCoords; })
+                != scalesAndCoords.end();
+
+            if (!isPtVisible)
+                continue;
+
+            const auto pt = object->point();
+            localPts.push_back(pt);
+        }
+
+        QMutexLocker locker(&mutex);
+        for (const auto& pt : localPts)
+            pts[pt.first].push_back(pt.second);
+        };
+
+    std::vector<std::thread> threads;
+    for (size_t i = 0; i < threadPoolSize; i++)
+        threads.push_back(std::thread(std::bind(workerFunc, i)));
+
+    for (auto& t : threads)
+        t.join();
+
+    _graphicsItem->updateData(std::move(pts));
+}
+
 void TrafficSimulation::updateStep() {
     executeAndShowElapsedTime([&](){ addCars(); }, "Add cars");
-    executeAndShowElapsedTime([&](){ fillDummies(); }, "Fill dummies");
-    executeAndShowElapsedTime([&](){ updateObjects(); }, "Update objects");
+    executeAndShowElapsedTime([&](){ fillDummiesParallel(); }, "Fill dummies parallel");
+    executeAndShowElapsedTime([&](){ updateObjectsParallel(); }, "Update objects");
     executeAndShowElapsedTime([&](){ clearDummies(); }, "Clear dummies");
     executeAndShowElapsedTime([&](){ deleteOffMapObjects(); }, "Delete off map objects");
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -195,33 +244,50 @@ void TrafficSimulation::initDummies() {
 
 void TrafficSimulation::fillDummies() {
     for (const auto& object : _objects)
-    {
-        if (!object->isObstacle() || !object->isOnMap())
-            continue;
-
-        for (auto& connectionLoad : _dummies[object->currentSegment().from()])
-        {
-            const auto& loadSegment = connectionLoad.segment();
-            const auto& objectSegment = object->currentSegment();
-            if (loadSegment == objectSegment)
-                connectionLoad.append(*object);
-        }
-    }
+        addObjectToDummies(*object);
 
     for (auto& nodeOutputLoads : _dummies)
         for (auto& connectionLoad : nodeOutputLoads)
             connectionLoad.sortTraffic();
 }
 
+void TrafficSimulation::fillDummiesParallel() {
+    processConstVector<std::unique_ptr<TrafficObject>>(_objects, [&](const auto& obj) { addObjectToDummies(*obj); });
+
+    processVector<Connections>(_dummies, [](auto& nodeOutputLoads) {
+        for (auto& connectionLoad : nodeOutputLoads)
+            connectionLoad.sortTraffic();
+        });
+}
+
+void TrafficSimulation::addObjectToDummies(const TrafficObject& obj) {
+    if (!obj.isObstacle() || !obj.isOnMap())
+        return;
+
+    for (auto& connectionLoad : _dummies[obj.currentSegment().from()])
+    {
+        const auto& loadSegment = connectionLoad.segment();
+        const auto& objectSegment = obj.currentSegment();
+        if (loadSegment == objectSegment)
+            connectionLoad.append(obj);
+    }
+}
+
 void TrafficSimulation::updateObjects() {
     for (auto& object : _objects)
-    {
-        const auto nextObjInfo = findNextObject(*object);
-        if (!nextObjInfo.has_value())
-            object->update(1e7, 100.);
-        else
-            object->update(nextObjInfo->second, nextObjInfo->first.speed());
-    }
+        updateObject(*object);
+}
+
+void TrafficSimulation::updateObjectsParallel() {
+    processVector<std::unique_ptr<TrafficObject>>(_objects, [&](auto& obj) { updateObject(*obj); });
+}
+
+void TrafficSimulation::updateObject(TrafficObject& obj) const {
+    const auto nextObjInfo = findNextObject(obj);
+    if (!nextObjInfo.has_value())
+        obj.update(1e7, 100.);
+    else
+        obj.update(nextObjInfo->second, nextObjInfo->first.speed());
 }
 
 void TrafficSimulation::clearDummies() {
@@ -279,7 +345,7 @@ void TrafficSimulation::addCarsParallel() {
     const size_t numCarsToAdd = _objects.size() < Settings::instance().simulationPoolSize() ?
                                     Settings::instance().simulationPoolSize() - _objects.size() :
                                     0;
-    const size_t numHardwareThreads = std::min((size_t)8, (size_t)std::thread::hardware_concurrency());
+    const size_t numHardwareThreads = std::min((size_t)12, (size_t)std::thread::hardware_concurrency());
     const size_t threadPoolSize = numHardwareThreads > 2 ? numHardwareThreads - 2 : 1;
     const size_t numCarsPerThread = numCarsToAdd / threadPoolSize;
     QMutex mutex;
